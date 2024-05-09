@@ -11,7 +11,7 @@
 */
 struct WindowCoords
 {
-    unsigned int x, y;
+    int x, y;
 };
 
 /* 
