@@ -11,16 +11,16 @@ Graphics::Graphics(int screenWidth, int screenHeight): screenWidth{screenWidth},
 void Graphics::drawRectangle(WindowCoords coord, int w, int h, Color color)
 {
     glLoadIdentity();
-    glTranslatef(2.0f * coord.x / screenWidth - 1.0f, (2.0f * coord.y / screenHeight - 1.0f), 0.0f);
+    glTranslatef(2.0f * coord.x / screenWidth - 1.0f, 2.0f * coord.y / screenHeight - 1.0f, 0.0f);
     glScalef(2.0f * static_cast<float>(w) / screenWidth, 2.0f * static_cast<float>(h) / screenHeight, 1.0f);
     glColor4f(color.r, color.g, color.b, color.a);
     glBegin(GL_TRIANGLES);
-    glVertex2f(0.0f, 0.0f);
-    glVertex2f(1.0f, 0.0f);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(1.0f, -1.0f);
     glVertex2f(1.0f, 1.0f);
     glVertex2f(1.0f, 1.0f);
-    glVertex2f(0.0f, 0.0f);
-    glVertex2f(0.0f, 1.0f);
+    glVertex2f(-1.0f, -1.0f); 
+    glVertex2f(-1.0f, 1.0f);
     glEnd();
 }
 void Graphics::drawRectangle(WindowCoordsRectangle coords, Color color)

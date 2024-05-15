@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.0)
 project(arkanoid VERSION 0.1.0 LANGUAGES C CXX)
 
 # add_executable(arkanoid main.cpp draw_utilities.cpp)
-add_executable(arkanoid main.cpp ball.cpp vars.hpp)
+add_executable(arkanoid main.cpp ball.cpp vars.hpp draw_utilities.cpp) 
 if (WIN32)
     target_link_libraries(arkanoid -lfreeglut)
     target_link_libraries(arkanoid -lopengl32)
