@@ -17,13 +17,13 @@ const char windowTitle[] = "Arcanoid";
 
 Graphics graphics(screenWidth, screenHeight);
 
-Color colorArray[8][3];
-Color baseColors[3]; // Сохраняем базовые цвета
+Color colorArray[8][4];
+Color baseColors[4]; // Сохраняем базовые цвета
 
 void generateColors() {
-    baseColors[0] = {1.0f, 0.0f, 1.0f}; // Фиолетовый
-    baseColors[1] = {1.0f, 1.0f, 0.0f}; // Желтый
-    baseColors[2] = {1.0f, 0.5f, 0.0f}; // Оранжевый
+    baseColors[0] = {1.0f, 0.0f, 1.0f, 1.0f}; // Фиолетовый
+    baseColors[1] = {1.0f, 1.0f, 0.0f, 1.0f}; // Желтый
+    baseColors[2] = {1.0f, 0.5f, 0.0f, 1.0f}; // Оранжевый
 
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 3; y++) {
@@ -38,7 +38,6 @@ void Draw(){
     graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 0.8f});
     graphics.drawRectangle({300, 100, 700, 300}, {0.0f, 1.0f, 0.0f, 0.4f});
     graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 1.0f});
-    graphics.drawRectangle({0,0}, 400, 300);
     graphics.drawRectangle({{10, 0}, {20, 10}});
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 3; y++) {
