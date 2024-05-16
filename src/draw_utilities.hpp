@@ -9,6 +9,7 @@ public:
     void drawRectangle(WindowCoordsRectangle coords, Color color = {1.0f, 1.0f, 1.0f, 1.0f});
     void drawRectangleWithTexture(WindowCoords coord, int w, int h, unsigned int textureID);
     void drawRectangleWithTexture(WindowCoordsRectangle coords, unsigned int textureID);
+    void drawCircle(WindowCoords coord);
 
     int screenWidth, screenHeight;
 };

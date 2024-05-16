@@ -1,8 +1,10 @@
 #include"ball.hpp"
 #include "vars.hpp"
 
+#include <iostream>
 void Ball::move()
 {
+    std::cout << x << " " << y << std::endl;
     x+=dx;
     y+=dy;
     if(x-r<=0)
