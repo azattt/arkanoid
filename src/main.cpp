@@ -7,22 +7,26 @@
 #include "game_structs.hpp"
 #include "draw_utilities.hpp"
 #include "ball.hpp"
+#include "vars.hpp"
 
 
-float r_x=70.0, r_y=280.0, r_w=80.0, r_h=8.0; //координата x, координата y, ширина, высота 
-const float DELTA_X = 1.0f;
+const int TIME_DELTA = 10;
+
+int r_x = 350, r_y = 100, r_w = 100, r_h = 20;
+const int DELTA_X = 10;
 
 int screenWidth = 800, screenHeight = 600;
 const char windowTitle[] = "Arcanoid"; 
 
 Graphics graphics(screenWidth, screenHeight);
 
-Color colorArray[8][4];
+Color colorArray[24];
 Color baseColors[4]; // Сохраняем базовые цвета
+WindowCoordsRectangle rectangles[24];
 
-Ball ball(0.1, 10);
+Ball ball(400, 200, 10);
 
-void generateColors() {
+void generateMap() {
     baseColors[0] = {1.0f, 0.0f, 1.0f, 1.0f}; // Фиолетовый
     baseColors[1] = {1.0f, 1.0f, 0.0f, 1.0f}; // Желтый
     baseColors[2] = {1.0f, 0.5f, 0.0f, 1.0f}; // Оранжевый
@@ -30,33 +34,35 @@ void generateColors() {
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 3; y++) {
             int colorIndex = rand() % 3; // Генерируем случайный индекс для выбора цвета
-            colorArray[x][y] = baseColors[colorIndex];
+            colorArray[y*8+x] = baseColors[colorIndex];
+            rectangles[y*8+x] = WindowCoordsRectangle{40 + x * 100, 500 - 30 * y, 40 + x * 100 + 80, 500 - 30 * y + 15};
         }
     }
 }
 
 void Draw(){
     glClear(GL_COLOR_BUFFER_BIT);
-    graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 0.8f});
-    graphics.drawRectangle({300, 100, 700, 300}, {0.0f, 1.0f, 0.0f, 0.4f});
-    graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 1.0f});
-    for (int x = 0; x < 8; x++) {
-        for (int y = 0; y < 3; y++) {
-            graphics.drawRectangle({40 + x * 100, 500 - 30 * y}, 80, 15, colorArray[x][y]);
-        }
+    // graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 0.8f});
+    // graphics.drawRectangle({300, 100, 700, 300}, {0.0f, 1.0f, 0.0f, 0.4f});
+    // graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 1.0f});
+
+    for (int i = 0; i < sizeof(rectangles) / sizeof(WindowCoordsRectangle); i++){
+        graphics.drawRectangle(rectangles[i], colorArray[i]);
     }
     // TODO: тут короче сделать чтобы каждый кадр вызывался этот метод ball.move и мячик двигался
-    ball.move();
+    ball.move(rectangles, sizeof(rectangles) / sizeof(WindowCoordsRectangle));
     // TODO: отрисовать этот мячик (применить новую функцию, которую я сейчас напишу)
-    graphics.drawRectangle({ball.x*800.0f, ball.y*600.0f}, ball.r, ball.r);
+    ball.draw(graphics);
+    graphics.drawRectangle({r_x, r_y}, r_w, r_h);
     glutSwapBuffers();
+    1;
 }
 
 // https://stackoverflow.com/questions/31058604/limiting-fps-in-glut
 void Timer(int)
 {
     glutPostRedisplay();
-    glutTimerFunc(33, Timer, 0);
+    glutTimerFunc(TIME_DELTA, Timer, 0);
 }
 
 
@@ -73,7 +79,6 @@ void myKey(unsigned char key, int x, int y)
     default:
         break;
     }
-    Draw();
 }
 
 // вызывается каждый раз, когда окно изменяет свой размер
@@ -86,9 +91,8 @@ void reshapeCallback(int w, int h){
 
 int main(int argc, char **argv)
 {   
-    
     srand(time(NULL)); // инициализация генератора случайных чисел
-    generateColors();
+    generateMap();
     system("chcp 65001"); // Чтобы русские буквы отображались в консоли cmd Windows
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
@@ -101,9 +105,11 @@ int main(int argc, char **argv)
     glEnable(GL_BLEND); // прозрачность
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // функция прозрачности
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    
-    glutTimerFunc(33, Timer, 0);
 
+    rectangles[0] = {0, 0, 800, 100};
+
+    glutTimerFunc(TIME_DELTA, Timer, 0);
+    glutKeyboardFunc(myKey);
     glutDisplayFunc(Draw);
     glutMainLoop();
     return 0;

@@ -27,7 +27,7 @@ struct Color {
 Color colorArray[8][3];
 Color baseColors[3]; // Сохраняем базовые цвета
 
-void generateColors() {
+void generateMap() {
     baseColors[0] = {1.0f, 0.0f, 1.0f}; // Фиолетовый
     baseColors[1] = {1.0f, 1.0f, 0.0f}; // Желтый
     baseColors[2] = {1.0f, 0.5f, 0.0f}; // Оранжевый
@@ -115,7 +115,7 @@ void Timer(int)
 int main(int argc, char** argv) {
     srand(time(NULL)); // инициализация генератора случайных чисел
 
-    generateColors();
+    generateMap();
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
