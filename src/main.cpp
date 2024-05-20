@@ -8,6 +8,7 @@
 #include "draw_utilities.hpp"
 #include "ball.hpp"
 #include "vars.hpp"
+#include "map.hpp"
 
 
 const int TIME_DELTA = 10;
@@ -20,22 +21,22 @@ const char windowTitle[] = "Arcanoid";
 
 Graphics graphics(screenWidth, screenHeight);
 
-Color colorArray[24];
-Color baseColors[4]; // Сохраняем базовые цвета
-WindowCoordsRectangle rectangles[24];
+Color baseColors[3];
+BreakableRectangle rectangles[24];
 
-Ball ball(400, 200, 10);
+Ball ball(400, 200, 5);
 
 void generateMap() {
     baseColors[0] = {1.0f, 0.0f, 1.0f, 1.0f}; // Фиолетовый
     baseColors[1] = {1.0f, 1.0f, 0.0f, 1.0f}; // Желтый
     baseColors[2] = {1.0f, 0.5f, 0.0f, 1.0f}; // Оранжевый
-
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 3; y++) {
-            int colorIndex = rand() % 3; // Генерируем случайный индекс для выбора цвета
-            colorArray[y*8+x] = baseColors[colorIndex];
-            rectangles[y*8+x] = WindowCoordsRectangle{40 + x * 100, 500 - 30 * y, 40 + x * 100 + 80, 500 - 30 * y + 15};
+            int durability = rand() % 3 + 1; // Генерируем случайный индекс для выбора цвета
+            rectangles[y*8+x] = {
+                WindowCoordsRectangle{40 + x * 100, 500 - 30 * y, 40 + x * 100 + 80, 500 - 30 * y + 15},
+                durability
+            };
         }
     }
 }
@@ -46,11 +47,13 @@ void Draw(){
     // graphics.drawRectangle({300, 100, 700, 300}, {0.0f, 1.0f, 0.0f, 0.4f});
     // graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 1.0f});
 
-    for (int i = 0; i < sizeof(rectangles) / sizeof(WindowCoordsRectangle); i++){
-        graphics.drawRectangle(rectangles[i], colorArray[i]);
+    for (int i = 0; i < sizeof(rectangles) / sizeof(BreakableRectangle); i++){
+        if (rectangles[i].durability > 0){
+            graphics.drawRectangle(rectangles[i].rect, baseColors[rectangles[i].durability - 1]);
+        }
     }
     // TODO: тут короче сделать чтобы каждый кадр вызывался этот метод ball.move и мячик двигался
-    ball.move(rectangles, sizeof(rectangles) / sizeof(WindowCoordsRectangle));
+    ball.move(rectangles, sizeof(rectangles) / sizeof(BreakableRectangle));
     // TODO: отрисовать этот мячик (применить новую функцию, которую я сейчас напишу)
     ball.draw(graphics);
     graphics.drawRectangle({r_x, r_y}, r_w, r_h);
@@ -106,7 +109,8 @@ int main(int argc, char **argv)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // функция прозрачности
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    rectangles[0] = {0, 0, 800, 100};
+    // rectangles[0] = {0, 0, 800, 100};
+    // rectangles[1] = {500, 0, 800, 600};
 
     glutTimerFunc(TIME_DELTA, Timer, 0);
     glutKeyboardFunc(myKey);

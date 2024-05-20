@@ -1,9 +1,10 @@
 #include "ball.hpp"
-#include "vars.hpp"
 
 #include <iostream>
 
-void Ball::move(WindowCoordsRectangle* collision_rectangles, int num_rectangles)
+#include "vars.hpp"
+
+void Ball::move(BreakableRectangle* rectangles, int num_rectangles)
 {
     x += dx;
     y += dy;
@@ -29,6 +30,7 @@ void Ball::move(WindowCoordsRectangle* collision_rectangles, int num_rectangles)
     else if (y + r >= r_y && y + r <= r_y + r_h && x > r_x && x < r_x + r_w)
     {
         dy *= -1;
+        y = r_y + r_h + r;
         std::cout << 8 << std::endl;
     }
     else
@@ -37,45 +39,45 @@ void Ball::move(WindowCoordsRectangle* collision_rectangles, int num_rectangles)
     
     for (int i = 0; i < num_rectangles; i++)
     {
-        if (x - r <= collision_rectangles[i].top_right.x &&
-            x + r >= collision_rectangles[i].bottom_left.x &&
-            y - r <= collision_rectangles[i].top_right.y &&
-            y + r >= collision_rectangles[i].bottom_left.y)
+        if (x - r <= rectangles[i].rect.top_right.x &&
+            x + r >= rectangles[i].rect.bottom_left.x &&
+            y - r <= rectangles[i].rect.top_right.y &&
+            y + r >= rectangles[i].rect.bottom_left.y)
         {
             std::cout << "внутри\n";
             // лево
-            if (x - r - dx < collision_rectangles[i].bottom_left.x){
-                x = collision_rectangles[i].bottom_left.x - r;
+            if (x + r - dx < rectangles[i].rect.bottom_left.x){
+                x = rectangles[i].rect.bottom_left.x - r;
                 dx *= -1;
                 std::cout << x << " 1\n";
-                break;
             }
             // верх
-            else if (y - r - dy > collision_rectangles[i].top_right.y){
-                y = collision_rectangles[i].top_right.y + r;
+            else if (y - r - dy > rectangles[i].rect.top_right.y){
+                y = rectangles[i].rect.top_right.y + r;
                 dy *= -1;
                 std::cout << y << " 2\n";
-                break;
             }
             // право
-            else if (x + r - dx > collision_rectangles[i].top_right.x){
-                x = collision_rectangles[i].top_right.x + r;
+            else if (x - r - dx > rectangles[i].rect.top_right.x){
+                x = rectangles[i].rect.top_right.x + r;
                 dx *= -1;
                 std::cout << y << " 3\n";
-                break;
             }
             // низ
-            else if (y + r - dy > collision_rectangles[i].bottom_left.y){
+            else if (y + r - dy > rectangles[i].rect.bottom_left.y){
                 dy *= -1;
-                y = collision_rectangles[i].bottom_left.y - r;
+                y = rectangles[i].rect.bottom_left.y - r;
                 std::cout << y << " 4\n";
-                break;
+            }else{
+                continue;
             }
+            rectangles[i].durability -= 1;
+            break;
         }
         
     }
     }
 }
 void Ball::draw(Graphics graphics){
-    graphics.drawCircle({x, y}, {1.0f, 1.0f, 1.0f, 1.0f}, r, 10);
+    graphics.drawCircle({x, y}, {1.0f, 0.0f, 0.0f, 1.0f}, r, 10);
 }

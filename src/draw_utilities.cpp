@@ -94,8 +94,8 @@ void Graphics::drawCircle(WindowCoords coord, const Color color, unsigned int ra
     glColor4f(color.r, color.g, color.b, color.a);
     glBegin(GL_TRIANGLES);
     float cx = toNDC_x(coord.x), cy = toNDC_y(coord.y);
-    float NDC_radius_x = static_cast<float>(radius)/screenWidth;
-    float NDC_radius_y = static_cast<float>(radius)/screenHeight;
+    float NDC_radius_x = 2.0f * static_cast<float>(radius)/screenWidth;
+    float NDC_radius_y = 2.0f * static_cast<float>(radius)/screenHeight;
     for (int v = 0; v < vert_count; v++)
     {
         glVertex2f(cx, cy);

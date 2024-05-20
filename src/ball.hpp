@@ -1,6 +1,7 @@
 #pragma once
 
 #include "draw_utilities.hpp"
+#include "map.hpp"
 
 class Ball
 {
@@ -9,7 +10,7 @@ class Ball
     bool active;
     Ball(int x, int y, int r): x(x), y(y), r(r), dx(2), dy(3), active(false){}
 
-    void move(WindowCoordsRectangle* collision_rectangles, int num_rectangles);
+    void move(BreakableRectangle* rectangles, int num_rectangles);
     void draw(Graphics graphics);
 
 };
