@@ -19,7 +19,7 @@ float Graphics::toNDC_y(int y){
 
 // coords: координаты прямоугольника (смотрите WindowCoordsRectangle в game_structs.hpp)
 // color (необязательный): цвет прямоугольника
-void Graphics::drawRectangle(WindowCoordsRectangle coords, Color color)
+void Graphics::drawRectangle(WindowCoordsRectangle coords, Color color, int angle)
 {
     if (coords.top_right.x < coords.bottom_left.x){
         throw std::invalid_argument("Недопустимые координаты прямоугольника: левый нижний угол оказался правее правого верхнего (ознакомтесь с WindowCoordsRectangle (game_structs.hpp))");
@@ -30,6 +30,7 @@ void Graphics::drawRectangle(WindowCoordsRectangle coords, Color color)
     glLoadIdentity();
     glTranslatef(2.0f * coords.bottom_left.x / screenWidth - 1.0f, (2.0f * coords.bottom_left.y / screenHeight - 1.0f), 0.0f);
     glScalef(2.0f * static_cast<float>(coords.top_right.x-coords.bottom_left.x) / screenWidth, 2.0f * static_cast<float>(coords.top_right.y-coords.bottom_left.y) / screenHeight, 1.0f);
+    glRotatef(angle, 0, 0, 1);
     glColor4f(color.r, color.g, color.b, color.a);
     glBegin(GL_TRIANGLES);
     glVertex2f(0.0f, 0.0f);

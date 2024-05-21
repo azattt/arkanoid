@@ -1,6 +1,9 @@
 #include "ball.hpp"
 
 #include <iostream>
+#include <cmath>
+
+#include <GL/glut.h>
 
 #include "vars.hpp"
 
@@ -39,6 +42,7 @@ void Ball::move(BreakableRectangle* rectangles, int num_rectangles)
     
     for (int i = 0; i < num_rectangles; i++)
     {
+        if (rectangles[i].durability == 0) continue;
         if (x - r <= rectangles[i].rect.top_right.x &&
             x + r >= rectangles[i].rect.bottom_left.x &&
             y - r <= rectangles[i].rect.top_right.y &&
@@ -79,5 +83,13 @@ void Ball::move(BreakableRectangle* rectangles, int num_rectangles)
     }
 }
 void Ball::draw(Graphics graphics){
-    graphics.drawCircle({x, y}, {1.0f, 0.0f, 0.0f, 1.0f}, r, 10);
+    int angle = glutGet(GLUT_ELAPSED_TIME);
+    graphics.drawRectangle({x-10, y-2, x+10, y+2}, {1.0f, 1.0f, 1.0f, 1.0f}, angle);
+    graphics.drawRectangle({x-2, y-10, x+2, y+10});
+    graphics.drawRectangle({x-10, y+6, x, y+10});
+    graphics.drawRectangle({x, y-10, x+10, y-6});
+    graphics.drawRectangle({x+6, y, x+10, y+10});
+    graphics.drawRectangle({x-10, y-10, x-6, y});
+
+    // graphics.drawCircle({x, y}, {1.0f, 0.0f, 0.0f, 1.0f}, r, 10);
 }

@@ -14,7 +14,7 @@
 const int TIME_DELTA = 10;
 
 int r_x = 350, r_y = 100, r_w = 100, r_h = 20;
-const int DELTA_X = 10;
+const int DELTA_X = 20;
 
 int screenWidth = 800, screenHeight = 600;
 const char windowTitle[] = "Arcanoid"; 
@@ -58,7 +58,6 @@ void Draw(){
     ball.draw(graphics);
     graphics.drawRectangle({r_x, r_y}, r_w, r_h);
     glutSwapBuffers();
-    1;
 }
 
 // https://stackoverflow.com/questions/31058604/limiting-fps-in-glut
@@ -109,7 +108,7 @@ int main(int argc, char **argv)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // функция прозрачности
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // rectangles[0] = {0, 0, 800, 100};
+    rectangles[0].rect = {0, 0, 800, 100};
     // rectangles[1] = {500, 0, 800, 600};
 
     glutTimerFunc(TIME_DELTA, Timer, 0);
