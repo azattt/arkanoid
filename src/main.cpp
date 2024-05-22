@@ -56,7 +56,7 @@ void Draw(){
     ball.move(rectangles, sizeof(rectangles) / sizeof(BreakableRectangle));
     // TODO: отрисовать этот мячик (применить новую функцию, которую я сейчас напишу)
     ball.draw(graphics);
-    graphics.drawRectangle({r_x, r_y}, r_w, r_h);
+    graphics.drawRectangle({r_x, r_y, r_x+r_w, r_y+r_h}, {1.0f, 1.0f, 1.0f, 1.0f}, glutGet(GLUT_ELAPSED_TIME)/5.0f);
     glutSwapBuffers();
 }
 
