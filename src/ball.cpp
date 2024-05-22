@@ -84,7 +84,7 @@ void Ball::move(BreakableRectangle* rectangles, int num_rectangles)
 }
 void Ball::draw(Graphics graphics){
     int angle = glutGet(GLUT_ELAPSED_TIME);
-    graphics.drawRectangle({x-10, y-2, x+10, y+2}, {1.0f, 1.0f, 1.0f, 1.0f}, angle);
+    graphics.drawRectangle({x-10, y-2, x+10, y+2}, {1.0f, 1.0f, 1.0f, 1.0f});
     graphics.drawRectangle({x-2, y-10, x+2, y+10});
     graphics.drawRectangle({x-10, y+6, x, y+10});
     graphics.drawRectangle({x, y-10, x+10, y-6});
