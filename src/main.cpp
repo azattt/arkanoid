@@ -56,7 +56,8 @@ void Draw(){
     ball.move(rectangles, sizeof(rectangles) / sizeof(BreakableRectangle));
     // TODO: отрисовать этот мячик (применить новую функцию, которую я сейчас напишу)
     ball.draw(graphics);
-    graphics.drawRectangle({r_x, r_y}, r_w, r_h);
+    int angle = glutGet(GLUT_ELAPSED_TIME);
+    graphics.drawRectangle({r_x, r_y, r_x+r_w, r_y+r_h}, {0.0f, 1.0f, 1.0f, 1.0f}, angle/10);
     glutSwapBuffers();
 }
 
@@ -85,7 +86,9 @@ void myKey(unsigned char key, int x, int y)
 
 // вызывается каждый раз, когда окно изменяет свой размер
 void reshapeCallback(int w, int h){
+    std::cout << "reshape " << w << " " << h << std::endl;
     glViewport(0, 0, w, h); // сообщаем OpenGL новый размер окна
+    glOrtho(0, w, 0, h, -1.0, 1.0);
     // сообщаем модулю отрисовки новые ширину и высоту
     graphics.screenWidth = w;
     graphics.screenHeight = h;
