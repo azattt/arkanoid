@@ -5,4 +5,5 @@
 struct BreakableRectangle{
     WindowCoordsRectangle rect;
     int durability;
+    Color color;
 };

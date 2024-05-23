@@ -44,7 +44,8 @@ void generateMap() {
             int durability = rand() % 3 + 1; // Генерируем случайный индекс для выбора цвета
             rectangles[y*8+x] = {
                 WindowCoordsRectangle{40 + x * 100, 500 - 30 * y, 40 + x * 100 + 80, 500 - 30 * y + 15},
-                durability
+                durability,
+                baseColors[durability-1]
             };
         }
     }
@@ -67,7 +68,7 @@ void Draw(){
     }
     for (int i = 0; i < sizeof(rectangles) / sizeof(BreakableRectangle); i++){
         if (rectangles[i].durability > 0){
-            graphics.drawRectangle(rectangles[i].rect, baseColors[rectangles[i].durability - 1]);
+            graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
         }
     }
     for (auto& i: balls)
@@ -134,6 +135,23 @@ int main(int argc, char **argv)
     glutCreateWindow(windowTitle);
     // https://stackoverflow.com/questions/28052053/c-glut-opengl-resize-window-event
     glutReshapeFunc(reshapeCallback);
+
+    rectangles[0].rect = {0, 0, 800, 100};
+
+    int x = 200;
+    int y = 200;
+    int pr_width = 200;
+    int pr_height = 30;
+    for (int i = 1; i < 7; i++){
+        rectangles[i].rect = {x, y+pr_height*(i-1), x+pr_width, y+pr_height*i};
+    }
+    rectangles[1].color = {228.0f / 255, 3.0f / 255, 3.0f / 255, 1.0f};
+    rectangles[2].color = {255.0f / 255, 140.0f / 255, 0.0f / 255, 1.0f};
+    rectangles[3].color = {255.0f / 255, 237.0f / 255, 0.0f / 255, 1.0f};
+    rectangles[4].color = {0.0f / 255, 128.0f / 255, 38.0f / 255, 1.0f};
+    rectangles[5].color = {36.0f / 255, 64.0f / 255, 142.0f / 255, 1.0f};
+    rectangles[6].color = {115.0f / 255, 41.0f / 255, 130.0f / 255, 1.0f};
+
     glutTimerFunc(TIME_DELTA, Timer, 0);
     glutDisplayFunc(Draw);
     glutKeyboardUpFunc(KeyboardUp);
