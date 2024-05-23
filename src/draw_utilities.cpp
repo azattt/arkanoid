@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "game_structs.hpp"
+#include <iostream>
 
 constexpr float PI = 3.14159265359;
 
@@ -27,13 +28,7 @@ void Graphics::drawRectangle(WindowCoordsRectangle coords, Color color, int angl
     if (coords.top_right.y < coords.bottom_left.y){
         throw std::invalid_argument("Недопустимые координаты прямоугольника: левый нижний угол оказался выше правого верхнего (ознакомтесь с WindowCoordsRectangle(game_structs.hpp)");
     }
-    // glLoadIdentity();
-    // glTranslatef(2.0f * coords.bottom_left.x / screenWidth - 1.0f, (2.0f * coords.bottom_left.y / screenHeight - 1.0f), 0.0f);
-    // angle = 45;
-    
     glPushMatrix();
-    
-    // glLoadIdentity();
     if (angle){
         glTranslatef((coords.top_right.x - coords.bottom_left.x)/2, (coords.top_right.y - coords.bottom_left.y)/2, 0.0f);
         glTranslatef(coords.bottom_left.x, coords.bottom_left.y, 0.0f);
@@ -41,12 +36,7 @@ void Graphics::drawRectangle(WindowCoordsRectangle coords, Color color, int angl
         glTranslatef(-coords.bottom_left.x, -coords.bottom_left.y, 0.0f);
         glTranslatef(-(coords.top_right.x - coords.bottom_left.x)/2, -(coords.top_right.y - coords.bottom_left.y)/2, 0.0f);
     }
-    // glTranslatef(-coords.bottom_left.x/2, -coords.bottom_left.y/2, 0.0f);
-    
-    
-    // glScalef(1.0f + 1.0f*cos(angle/180*3.14159), 1.0f + 1.0f*sin(angle/180*3.14159), 1.0f);
-    // glScalef(2.0f * static_cast<float>(coords.top_right.x-coords.bottom_left.x) / screenWidth, 2.0f * static_cast<float>(coords.top_right.y-coords.bottom_left.y) / screenHeight, 1.0f);
-    
+
     glColor4f(color.r, color.g, color.b, color.a);
     glBegin(GL_TRIANGLES);
     glVertex2f(coords.bottom_left.x, coords.bottom_left.y);
@@ -63,12 +53,12 @@ void Graphics::drawRectangle(WindowCoordsRectangle coords, Color color, int angl
 // w: ширина прямоугольника
 // h: высота прямоугольника
 // color (необязательный): цвет прямоугольника
-void Graphics::drawRectangle(WindowCoords coord, int w, int h, Color color)
+void Graphics::drawRectangle(WindowCoords coord, int w, int h, Color color, int angle)
 {
-    drawRectangle({coord.x, coord.y, coord.x+w, coord.y+h}, color);
+    drawRectangle({coord.x, coord.y, coord.x+w, coord.y+h}, color, angle);
 }
 
-void Graphics::drawRectangleWithTexture(WindowCoordsRectangle coords, unsigned int textureID)
+void Graphics::drawRectangleWithTexture(WindowCoordsRectangle coords, unsigned int textureID, int angle)
 {
     if (coords.top_right.x < coords.bottom_left.x){
         throw std::invalid_argument("Недопустимые координаты прямоугольника: левый нижний угол оказался правее правого верхнего (ознакомтесь с WindowCoordsRectangle (game_structs.hpp))");
@@ -76,48 +66,46 @@ void Graphics::drawRectangleWithTexture(WindowCoordsRectangle coords, unsigned i
     if (coords.top_right.y < coords.bottom_left.y){
         throw std::invalid_argument("Недопустимые координаты прямоугольника: левый нижний угол оказался выше правого верхнего (ознакомтесь с WindowCoordsRectangle(game_structs.hpp)");
     }
-    glTranslatef(2.0f * coords.bottom_left.x / screenWidth - 1.0f, (2.0f * coords.bottom_left.y / screenHeight - 1.0f), 0.0f);
-    glScalef(2.0f * static_cast<float>(coords.top_right.x-coords.bottom_left.x) / screenWidth, 2.0f * static_cast<float>(coords.top_right.y-coords.bottom_left.y) / screenHeight, 1.0f);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-    glVertex2f(0.0f, 0.0f); glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(1.0f, 0.0f); glTexCoord2f(1.0f, 0.0f);
-    glVertex2f(1.0f, 1.0f); glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(1.0f, 1.0f); glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(0.0f, 0.0f); glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(0.0f, 1.0f); glTexCoord2f(0.0f, 1.0f);
-    glEnd();    
-}
-
-void Graphics::drawRectangleWithTexture(WindowCoords coord, int w, int h, unsigned int textureID)
-{
-    glLoadIdentity();
-    glTranslatef(2.0f * coord.x / screenWidth - 1.0f, (2.0f * coord.y / screenHeight - 1.0f), 0.0f);
-    glScalef(2.0f * static_cast<float>(w) / screenWidth, 2.0f * static_cast<float>(h) / screenHeight, 1.0f);
+    glPushMatrix();
+    if (angle){
+        glTranslatef((coords.top_right.x - coords.bottom_left.x)/2, (coords.top_right.y - coords.bottom_left.y)/2, 0.0f);
+        glTranslatef(coords.bottom_left.x, coords.bottom_left.y, 0.0f);
+        glRotatef(angle, 0, 0, 1);
+        glTranslatef(-coords.bottom_left.x, -coords.bottom_left.y, 0.0f);
+        glTranslatef(-(coords.top_right.x - coords.bottom_left.x)/2, -(coords.top_right.y - coords.bottom_left.y)/2, 0.0f);
+    }
+    glBindTexture(GL_TEXTURE_2D, textureID);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glBegin(GL_TRIANGLES);
-    glVertex2f(0.0f, 0.0f); glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(1.0f, 0.0f); glTexCoord2f(1.0f, 0.0f);
-    glVertex2f(1.0f, 1.0f); glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(1.0f, 1.0f); glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(0.0f, 0.0f); glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(0.0f, 1.0f); glTexCoord2f(0.0f, 1.0f);
-    glEnd();
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(coords.bottom_left.x, coords.bottom_left.y); 
+    glTexCoord2f(1.0f, 0.0f); glVertex2f(coords.top_right.x, coords.bottom_left.y); 
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(coords.top_right.x, coords.top_right.y); 
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(coords.top_right.x, coords.top_right.y);
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(coords.bottom_left.x, coords.bottom_left.y); 
+    glTexCoord2f(0.0f, 1.0f); glVertex2f(coords.bottom_left.x, coords.top_right.y); 
+    glEnd();    
+    glPopMatrix();
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Graphics::drawRectangleWithTexture(WindowCoords coord, int w, int h, unsigned int textureID, int angle)
+{
+    drawRectangleWithTexture({coord.x, coord.y, coord.x+w, coord.y+h}, textureID, angle);
 }
 
 void Graphics::drawCircle(WindowCoords coord, const Color color, unsigned int radius, unsigned int vert_count)
 {
-    glLoadIdentity();
     glColor4f(color.r, color.g, color.b, color.a);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     glBegin(GL_TRIANGLES);
-    float cx = toNDC_x(coord.x), cy = toNDC_y(coord.y);
-    float NDC_radius_x = 2.0f * static_cast<float>(radius)/screenWidth;
-    float NDC_radius_y = 2.0f * static_cast<float>(radius)/screenHeight;
+    float cx = coord.x, cy = coord.y;
     for (int v = 0; v < vert_count; v++)
     {
         glVertex2f(cx, cy);
-        glVertex2f(cx + NDC_radius_x * std::cos(2*PI/vert_count * v), cy + NDC_radius_y * std::sin(2*PI/vert_count * v));
-        glVertex2f(cx + NDC_radius_x * std::cos(2*PI/vert_count * (v+1)), cy + NDC_radius_y * std::sin(2*PI/vert_count * (v+1)));
+        glVertex2f(cx + radius * std::cos(2*PI/vert_count * v), cy + radius * std::sin(2*PI/vert_count * v));
+        glVertex2f(cx + radius * std::cos(2*PI/vert_count * (v+1)), cy + radius * std::sin(2*PI/vert_count * (v+1)));
     }
     glEnd();
+    glPopMatrix();
 }

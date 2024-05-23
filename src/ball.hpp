@@ -8,7 +8,10 @@ class Ball
     public:
     int x, y, dx, dy, r;
     bool active;
-    Ball(int x, int y, int r): x(x), y(y), r(r), dx(3), dy(4), active(false){}
+    unsigned int textureID;
+    Ball(int x, int y, int r);
+
+    void initializeTexture();
 
     void move(BreakableRectangle* rectangles, int num_rectangles);
     void draw(Graphics graphics);
