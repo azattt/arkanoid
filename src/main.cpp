@@ -41,7 +41,8 @@ void generateMap() {
             int durability = rand() % 3 + 1; // Генерируем случайный индекс для выбора цвета
             rectangles[y*8+x] = {
                 WindowCoordsRectangle{40 + x * 100, 500 - 30 * y, 40 + x * 100 + 80, 500 - 30 * y + 15},
-                durability
+                durability,
+                baseColors[durability-1]
             };
         }
     }
@@ -69,7 +70,7 @@ void Draw(){
 
     for (int i = 0; i < sizeof(rectangles) / sizeof(BreakableRectangle); i++){
         if (rectangles[i].durability > 0){
-            graphics.drawRectangle(rectangles[i].rect, baseColors[rectangles[i].durability - 1]);
+            graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
         }
     }
     // TODO: тут короче сделать чтобы каждый кадр вызывался этот метод ball.move и мячик двигался
@@ -78,7 +79,7 @@ void Draw(){
     ball.draw(graphics);
     int angle = glutGet(GLUT_ELAPSED_TIME);
     graphics.drawRectangle({r_x, r_y, r_x+r_w, r_y+r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
-    graphics.drawRectangleWithTexture({300, 300, 500, 500}, textureID, angle/5);
+    // graphics.drawRectangleWithTexture({300, 300, 500, 500}, textureID, angle/5);
     GLenum errors = glGetError();
     if (errors)
         std::cout << "Ошибки OpenGL: " << errors << std::endl;
@@ -138,7 +139,20 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshapeCallback);
 
     rectangles[0].rect = {0, 0, 800, 100};
-    // rectangles[1] = {500, 0, 800, 600};
+
+    int x = 200;
+    int y = 200;
+    int pr_width = 200;
+    int pr_height = 30;
+    for (int i = 1; i < 7; i++){
+        rectangles[i].rect = {x, y+pr_height*(i-1), x+pr_width, y+pr_height*i};
+    }
+    rectangles[1].color = {228.0f / 255, 3.0f / 255, 3.0f / 255, 1.0f};
+    rectangles[2].color = {255.0f / 255, 140.0f / 255, 0.0f / 255, 1.0f};
+    rectangles[3].color = {255.0f / 255, 237.0f / 255, 0.0f / 255, 1.0f};
+    rectangles[4].color = {0.0f / 255, 128.0f / 255, 38.0f / 255, 1.0f};
+    rectangles[5].color = {36.0f / 255, 64.0f / 255, 142.0f / 255, 1.0f};
+    rectangles[6].color = {115.0f / 255, 41.0f / 255, 130.0f / 255, 1.0f};
 
     glutTimerFunc(TIME_DELTA, Timer, 0);
     // glutKeyboardFunc(myKey);
