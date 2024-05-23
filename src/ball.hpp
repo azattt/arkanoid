@@ -6,7 +6,8 @@
 class Ball
 {
     public:
-    int x, y, dx, dy, r;
+    int r;
+    float x, y, dx, dy;
     bool active;
     unsigned int textureID;
     Ball(int x, int y, int r);

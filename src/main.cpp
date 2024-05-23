@@ -67,7 +67,7 @@ void Draw(){
         }
     }
     for (int i = 0; i < sizeof(rectangles) / sizeof(BreakableRectangle); i++){
-        if (rectangles[i].durability > 0){
+        if (rectangles[i].durability){
             graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
         }
     }
@@ -142,15 +142,17 @@ int main(int argc, char **argv)
     int y = 200;
     int pr_width = 200;
     int pr_height = 30;
-    for (int i = 1; i < 7; i++){
-        rectangles[i].rect = {x, y+pr_height*(i-1), x+pr_width, y+pr_height*i};
-    }
-    rectangles[1].color = {228.0f / 255, 3.0f / 255, 3.0f / 255, 1.0f};
-    rectangles[2].color = {255.0f / 255, 140.0f / 255, 0.0f / 255, 1.0f};
-    rectangles[3].color = {255.0f / 255, 237.0f / 255, 0.0f / 255, 1.0f};
-    rectangles[4].color = {0.0f / 255, 128.0f / 255, 38.0f / 255, 1.0f};
-    rectangles[5].color = {36.0f / 255, 64.0f / 255, 142.0f / 255, 1.0f};
-    rectangles[6].color = {115.0f / 255, 41.0f / 255, 130.0f / 255, 1.0f};
+    generateMap();
+    // for (int i = 1; i < 7; i++){
+    //     rectangles[i].rect = {x, y+pr_height*(i-1), x+pr_width, y+pr_height*i};
+    //     rectangles[i].durability = -1;
+    // }
+    // rectangles[1].color = {228.0f / 255, 3.0f / 255, 3.0f / 255, 1.0f};
+    // rectangles[2].color = {255.0f / 255, 140.0f / 255, 0.0f / 255, 1.0f};
+    // rectangles[3].color = {255.0f / 255, 237.0f / 255, 0.0f / 255, 1.0f};
+    // rectangles[4].color = {0.0f / 255, 128.0f / 255, 38.0f / 255, 1.0f};
+    // rectangles[5].color = {36.0f / 255, 64.0f / 255, 142.0f / 255, 1.0f};
+    // rectangles[6].color = {115.0f / 255, 41.0f / 255, 130.0f / 255, 1.0f};
 
     glutTimerFunc(TIME_DELTA, Timer, 0);
     glutDisplayFunc(Draw);
@@ -163,19 +165,19 @@ int main(int argc, char **argv)
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     srand(time(NULL)); // инициализация генератора случайных чисел
-    generateMap();
-    for (int i = 0; i < 5; i++){
-        Ball new_ball(400, 200, 10);
-        new_ball.dx = 5.0f*std::cos(1.0f + i/5.0f);
-        new_ball.dy = 5.0f*std::sin(1.0f + i/5.0f);
+    
+    for (int i = 0; i < 1000; i++){
+        Ball new_ball(400, 200, 3);
+        new_ball.dx = 3.0f*std::cos(rand());
+        new_ball.dy = 3.0f*std::sin(rand());
         std::cout << new_ball.dx << " " << new_ball.dy << std::endl;
         balls.push_back(new_ball);
     }
 
     ball.initializeTexture();
 
-    rectangles[0].rect = {0, 0, 800, 200};
-    rectangles[0].durability = 3;
+    rectangles[0].rect = {0, 0, 800, 100};
+    rectangles[0].durability = -1;
 
     glutMainLoop();
     return 0;
