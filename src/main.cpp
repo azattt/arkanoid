@@ -14,6 +14,8 @@
 #include "vars.hpp"
 #include "map.hpp"
 
+unsigned int frame_counter = 0;
+
 unsigned int textureID;
 
 bool keys[256];
@@ -41,11 +43,11 @@ void generateMap() {
     baseColors[2] = {1.0f, 0.5f, 0.0f, 1.0f}; // Оранжевый
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 3; y++) {
-            int durability = rand() % 3 + 1; // Генерируем случайный индекс для выбора цвета
+            int durability = rand() % 3 + 6; // Генерируем случайный индекс для выбора цвета
             rectangles[y*8+x] = {
                 WindowCoordsRectangle{40 + x * 100, 500 - 30 * y, 40 + x * 100 + 80, 500 - 30 * y + 15},
                 durability,
-                baseColors[durability-1]
+                baseColors[rand() % 3]
             };
         }
     }
@@ -84,6 +86,7 @@ void Draw(){
     if (errors)
         std::cout << "Ошибки OpenGL: " << errors << std::endl;
     glutSwapBuffers();
+    frame_counter += 1;
 }
 
 // https://stackoverflow.com/questions/31058604/limiting-fps-in-glut
@@ -166,11 +169,15 @@ int main(int argc, char **argv)
 
     srand(time(NULL)); // инициализация генератора случайных чисел
     
-    for (int i = 0; i < 1000; i++){
-        Ball new_ball(400, 200, 3);
-        new_ball.dx = 3.0f*std::cos(rand());
-        new_ball.dy = 3.0f*std::sin(rand());
-        std::cout << new_ball.dx << " " << new_ball.dy << std::endl;
+    float angle = -30 / 180.0f * 3.1415926f;
+    for (int i = 0; i < 1; i++){
+        Ball new_ball(790, 110, 10);
+        float speed = ((rand() % 100000)/100000.0f);
+        new_ball.dx = speed*std::cos(angle);
+        new_ball.dy = speed*std::sin(angle);
+        // new_ball.dx = new_ball.dy = 0;
+        new_ball.dx = -1;
+        std::cout << new_ball.dx << " " << new_ball.dy << " " << speed << std::endl;
         balls.push_back(new_ball);
     }
 
@@ -178,6 +185,11 @@ int main(int argc, char **argv)
 
     rectangles[0].rect = {0, 0, 800, 100};
     rectangles[0].durability = -1;
+
+    ball.x = 790;
+    ball.y = 110;
+    ball.dx = 10.0f*std::cos(angle);
+    ball.dy = 10.0f*std::sin(angle);
 
     glutMainLoop();
     return 0;
