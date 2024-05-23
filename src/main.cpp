@@ -1,6 +1,7 @@
 #include <iostream>
 #include <exception>
 #include <ctime>
+#include <vector>
 
 #include <GL/glut.h>
 
@@ -32,6 +33,8 @@ BreakableRectangle rectangles[24];
 
 Ball ball(400, 200, 10);
 
+std::vector<Ball> balls;
+
 void generateMap() {
     baseColors[0] = {1.0f, 0.0f, 1.0f, 1.0f}; // Фиолетовый
     baseColors[1] = {1.0f, 1.0f, 0.0f, 1.0f}; // Желтый
@@ -62,23 +65,20 @@ void Draw(){
             r_x = 0;
         }
     }
-
-    // graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 0.8f});
-    // graphics.drawRectangle({300, 100, 700, 300}, {0.0f, 1.0f, 0.0f, 0.4f});
-    // graphics.drawRectangle({800, 300}, 200, 100, {0.0f, 0.0f, 1.0f, 1.0f});
-
     for (int i = 0; i < sizeof(rectangles) / sizeof(BreakableRectangle); i++){
         if (rectangles[i].durability > 0){
             graphics.drawRectangle(rectangles[i].rect, baseColors[rectangles[i].durability - 1]);
         }
     }
-    // TODO: тут короче сделать чтобы каждый кадр вызывался этот метод ball.move и мячик двигался
+    for (auto& i: balls)
+    {
+        i.move(rectangles, sizeof(rectangles) / sizeof(BreakableRectangle));
+        i.draw(graphics);
+    }
+
     ball.move(rectangles, sizeof(rectangles) / sizeof(BreakableRectangle));
-    // TODO: отрисовать этот мячик (применить новую функцию, которую я сейчас напишу)
     ball.draw(graphics);
-    int angle = glutGet(GLUT_ELAPSED_TIME);
     graphics.drawRectangle({r_x, r_y, r_x+r_w, r_y+r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
-    graphics.drawRectangleWithTexture({300, 300, 500, 500}, textureID, angle/5);
     GLenum errors = glGetError();
     if (errors)
         std::cout << "Ошибки OpenGL: " << errors << std::endl;
@@ -125,8 +125,6 @@ void reshapeCallback(int w, int h){
 
 int main(int argc, char **argv)
 {   
-    srand(time(NULL)); // инициализация генератора случайных чисел
-    generateMap();
 #ifdef _WIN32
     system("chcp 65001"); // Чтобы русские буквы отображались в консоли cmd Windows
 #endif
@@ -136,49 +134,31 @@ int main(int argc, char **argv)
     glutCreateWindow(windowTitle);
     // https://stackoverflow.com/questions/28052053/c-glut-opengl-resize-window-event
     glutReshapeFunc(reshapeCallback);
-
-    rectangles[0].rect = {0, 0, 800, 100};
-    // rectangles[1] = {500, 0, 800, 600};
-
     glutTimerFunc(TIME_DELTA, Timer, 0);
-    // glutKeyboardFunc(myKey);
     glutDisplayFunc(Draw);
-
-    // glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
     glutKeyboardUpFunc(KeyboardUp);
     glutKeyboardFunc(KeyboardDown);
 
     glEnable(GL_TEXTURE_2D); // включение текстур
     glEnable(GL_BLEND); // прозрачность
-
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // функция прозрачности
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-
-    int width, height, channels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* image = stbi_load("./resources/svaston2.png", &width, &height, &channels, 0);
-    if (image == nullptr){
-        std::cout << "Не удалось загрузить текстуру с диска" << std::endl;
+    srand(time(NULL)); // инициализация генератора случайных чисел
+    generateMap();
+    for (int i = 0; i < 5; i++){
+        Ball new_ball(400, 200, 10);
+        new_ball.dx = 5.0f*std::cos(1.0f + i/5.0f);
+        new_ball.dy = 5.0f*std::sin(1.0f + i/5.0f);
+        std::cout << new_ball.dx << " " << new_ball.dy << std::endl;
+        balls.push_back(new_ball);
     }
 
-    glGenTextures(1, &textureID);
-    if (textureID == 0) {
-        std::cout << "Не удалось создать текстуру" << std::endl;
-    }
-
-    std::cout << width << " " << height << " " << channels << std::endl;
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    std::cout << glGetError() << std::endl;
-    
     ball.initializeTexture();
+
+    rectangles[0].rect = {0, 0, 800, 200};
+    rectangles[0].durability = 3;
+
     glutMainLoop();
     return 0;
 }
