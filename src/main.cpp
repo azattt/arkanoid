@@ -88,7 +88,13 @@ void myKey(unsigned char key, int x, int y)
 void reshapeCallback(int w, int h){
     std::cout << "reshape " << w << " " << h << std::endl;
     glViewport(0, 0, w, h); // сообщаем OpenGL новый размер окна
-    glOrtho(0, w, 0, h, -1.0, 1.0);
+    // перезагружаем матрицу проекции
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity ();
+    // эта операция на самом деле перемножает текущую матрицу с новой, поэтому нужно
+    // glLoadIdentity перед этим
+    glOrtho(0, w, 0, h, -1.0, 1.0); 
+
     // сообщаем модулю отрисовки новые ширину и высоту
     graphics.screenWidth = w;
     graphics.screenHeight = h;

@@ -32,9 +32,16 @@ void Graphics::drawRectangle(WindowCoordsRectangle coords, Color color, int angl
     // angle = 45;
     
     glPushMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glRotatef(angle, 0, 0, 1);
-    glTranslatef(-coords.bottom_left.x, -coords.bottom_left.y, 0.0f);
+    
+    // glLoadIdentity();
+    if (angle){
+        glTranslatef((coords.top_right.x - coords.bottom_left.x)/2, (coords.top_right.y - coords.bottom_left.y)/2, 0.0f);
+        glTranslatef(coords.bottom_left.x, coords.bottom_left.y, 0.0f);
+        glRotatef(angle, 0, 0, 1);
+        glTranslatef(-coords.bottom_left.x, -coords.bottom_left.y, 0.0f);
+        glTranslatef(-(coords.top_right.x - coords.bottom_left.x)/2, -(coords.top_right.y - coords.bottom_left.y)/2, 0.0f);
+    }
+    // glTranslatef(-coords.bottom_left.x/2, -coords.bottom_left.y/2, 0.0f);
     
     
     // glScalef(1.0f + 1.0f*cos(angle/180*3.14159), 1.0f + 1.0f*sin(angle/180*3.14159), 1.0f);
