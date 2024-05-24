@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "draw_utilities.hpp"
 #include "map.hpp"
 
@@ -14,7 +16,7 @@ class Ball
 
     void initializeTexture();
 
-    void move(BreakableRectangle* rectangles, int num_rectangles);
-    void draw(Graphics graphics);
+    void move(std::vector<BreakableRectangle>& rectangles);
+    void draw(Graphics& graphics);
 
 };

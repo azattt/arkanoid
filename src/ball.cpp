@@ -38,87 +38,86 @@ void Ball::initializeTexture()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Ball::move(BreakableRectangle *rectangles, int num_rectangles)
+void Ball::move(std::vector<BreakableRectangle>& rectangles)
 {
     x += dx;
     y += dy;
     if (x - r < 0)
     {
         x = r;
-        dx *= -1;
+        dx *= -0.5;
         // std::cout << "5" << std::endl;
     }
     else if (y + r > 600)
     {
         y = 600 - r;
-        dy *= -1;
+        dy *= -0.5;
         // std::cout << "6" << std::endl;
     }
     else if (x + r > 800)
     {
         x = 800 - r;
-        dx *= -1;
+        dx *= -0.5;
         // std::cout << 7 << std::endl;
     }
 
     else if (x - r <= r_x + r_w && y - r <= r_y + r_h && x + r >= r_x && y + r >= r_y)
     {
-        dy *= -1;
+        dy *= -0.5;
         y = r_y + r_h + r;
         // std::cout << 8 << std::endl;
     }
-    else
-    {
-        // проверка столкновения с прямоугольниками
 
-        for (int i = 0; i < num_rectangles; i++)
+    // проверка столкновения с прямоугольниками
+
+    for (int i = 0; i < rectangles.size(); i++)
+    {
+        if (rectangles[i].durability == 0)
+            continue;
+        if (x - r <= rectangles[i].rect.top_right.x && x + r >= rectangles[i].rect.bottom_left.x &&
+            y - r <= rectangles[i].rect.top_right.y && y + r >= rectangles[i].rect.bottom_left.y)
         {
-            if (rectangles[i].durability == 0)
-                continue;
-            if (x - r <= rectangles[i].rect.top_right.x && x + r >= rectangles[i].rect.bottom_left.x &&
-                y - r <= rectangles[i].rect.top_right.y && y + r >= rectangles[i].rect.bottom_left.y)
+            // std::cout << "внутри\n";
+            // лево
+            if (x - r - dx <= rectangles[i].rect.bottom_left.x)
             {
-                // std::cout << "внутри\n";
-                // лево
-                if (x + r - dx < rectangles[i].rect.bottom_left.x)
-                {
-                    x = rectangles[i].rect.bottom_left.x - r;
-                    dx *= -1;
-                    // std::cout << x << " 1\n";
-                }
-                // верх
-                else if (y - r - dy > rectangles[i].rect.top_right.y)
-                {
-                    y = rectangles[i].rect.top_right.y + r;
-                    dy *= -1;
-                    // std::cout << y << " 2\n";
-                }
-                // право
-                else if (x - r - dx > rectangles[i].rect.top_right.x)
-                {
-                    x = rectangles[i].rect.top_right.x + r;
-                    dx *= -1;
-                    // std::cout << y << " 3\n";
-                }
-                // низ
-                else if (y + r - dy < rectangles[i].rect.bottom_left.y)
-                {
-                    dy *= -1;
-                    y = rectangles[i].rect.bottom_left.y - r;
-                    // std::cout << y << " 4\n";
-                }
-                else
-                {
-                    continue;
-                }
-                if (rectangles[i].durability > 0)
-                    rectangles[i].durability -= 1;
-                break;
+                x = rectangles[i].rect.bottom_left.x - r;
+                dx *= -0.5;
+                dy *= 0.5;
+                std::cout << x << " 1\n";
+            }
+            // верх
+            else if (x - dx >= rectangles[i].rect.bottom_left.x && x - dx <= rectangles[i].rect.top_right.x && y + r - dy >= rectangles[i].rect.top_right.y)
+            {
+                y = rectangles[i].rect.top_right.y + r;
+                dy *= -0.5;
+                dx * 0.5;
+                std::cout << i << " 2\n";
+            }
+            // право
+            else if (x + r - dx >= rectangles[i].rect.top_right.x)
+            {
+                x = rectangles[i].rect.top_right.x + r;
+                dx *= -0.5;
+                dy *= 0.5;
+                std::cout << y << " 3\n";
+            }
+            // низ
+            else if (y - r - dy <= rectangles[i].rect.bottom_left.y)
+            {
+                dy *= -0.5;
+                dx *= 0.5;
+                y = rectangles[i].rect.bottom_left.y - r;
+                std::cout << y << " 4\n";
+            }
+            if (rectangles[i].durability > 0)
+            {
+                rectangles[i].durability -= 1;
             }
         }
     }
 }
-void Ball::draw(Graphics graphics)
+void Ball::draw(Graphics& graphics)
 {
     graphics.drawCircle({x, y}, {1.0f, 0.0f, 0.0f, 1.0f}, r, 10);
 }
