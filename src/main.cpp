@@ -57,7 +57,7 @@ void generateMap()
             BonusType bonus_type = BonusType(rand() % 7);
             // std::cout << bonus_type << std::endl;
             rectangles.push_back(BreakableRectangle{
-                WindowCoordsRectangle{40 + x * 100.0f, 500 - 30.0f * y, 40 + x * 100.0f + 80, 500 - 30.0f * y + 15}, durability,
+                WindowCoordsRectangle{10 + x * 100.0f, 500 - 30.0f * y, 10 + x * 100.0f + 80, 500 - 30.0f * y + 15}, durability,
                 baseColors[rand() % 3],
                 bonus_type});
         }
