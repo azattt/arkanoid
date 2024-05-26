@@ -2,10 +2,10 @@
 #include "GL/gl.h"
 /*
 Координаты внутри окна
-     (0, height)       
+     (0, height)
             ^ y
             |
-            |      
+            |
             |------> x
      (0, 0)          (width, 0)
 */
@@ -14,7 +14,7 @@ struct WindowCoords
     float x, y;
 };
 
-/* 
+/*
 Если мы хотим отрисовать прямоугольник с помощью данных координат
 верхнего левого угла и нижнего правого угла
  *------------top_right
@@ -22,7 +22,8 @@ struct WindowCoords
  |                    |
  bottom_left---------*
 */
-struct WindowCoordsRectangle{
+struct WindowCoordsRectangle
+{
     WindowCoords bottom_left;
     WindowCoords top_right;
 };

@@ -1,8 +1,8 @@
 #pragma once
 #include "game_structs.hpp"
 
-
-class Graphics{
+class Graphics
+{
 public:
     Graphics(int screenWidth, int screenHeight);
     float toNDC_x(int x);
