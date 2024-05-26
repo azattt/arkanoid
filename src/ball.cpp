@@ -11,7 +11,7 @@
 
 std::vector<Bonus> bonuses;
 
-Ball::Ball(int x, int y, int r) : x(x), y(y), r(r), dx(3), dy(4), active(false)
+Ball::Ball(float x, float y, float r, float dx, float dy): x(x), y(y), r(r), dx(dx), dy(dy)
 {
 }
 void Ball::initializeTexture()
@@ -21,16 +21,16 @@ void Ball::initializeTexture()
     unsigned char *image = stbi_load("./resources/svaston2.png", &width, &height, &channels, 0);
     if (image == nullptr)
     {
-        // // std::cout << "Не удалось загрузить текстуру с диска" << std::endl;
+        // std::cout << "Не удалось загрузить текстуру с диска" << std::endl;
     }
 
     glGenTextures(1, &textureID);
     if (textureID == 0)
     {
-        // // std::cout << "Не удалось создать текстуру" << std::endl;
+        // std::cout << "Не удалось создать текстуру" << std::endl;
     }
 
-    // // std::cout << width << " " << height << " " << channels << std::endl;
+    // std::cout << width << " " << height << " " << channels << std::endl;
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -49,26 +49,33 @@ void Ball::move(std::vector<BreakableRectangle>& rectangles)
     {
         x = r;
         dx *= -1.0;
-        // // std::cout << "5" << std::endl;
+        // std::cout << "5" << std::endl;
     }
     else if (y + r > 600)
     {
         y = 600 - r;
         dy *= -1.0;
-        // // std::cout << "6" << std::endl;
+        // std::cout << "6" << std::endl;
     }
     else if (x + r > 800)
     {
         x = 800 - r;
         dx *= -1.0;
-        // // std::cout << 7 << std::endl;
+        // std::cout << 7 << std::endl;
     }
 
     else if (x - r <= r_x + r_w && y - r <= r_y + r_h && x + r >= r_x && y + r >= r_y)
     {
         dy *= -1.0;
         y = r_y + r_h + r;
-        // // std::cout << 8 << std::endl;
+        if (capturing_ball){
+            dy = 0;
+            dx = 0;
+            x = r_x + r_w / 2;
+            captured_ball_index = index;
+            capturing_ball = false;
+        }
+        // std::cout << 8 << std::endl;
     }
 
     // проверка столкновения с прямоугольниками
@@ -80,39 +87,35 @@ void Ball::move(std::vector<BreakableRectangle>& rectangles)
         if (x - r <= rectangles[i].rect.top_right.x && x + r >= rectangles[i].rect.bottom_left.x &&
             y - r <= rectangles[i].rect.top_right.y && y + r >= rectangles[i].rect.bottom_left.y)
         {
-            // // std::cout << "внутри\n";
+            // std::cout << "внутри\n";
             // лево
             // https://stackoverflow.com/questions/69997547/intersections-of-intervals
             // низ
             float future_x_left = (x - r) + (dx/dy) * (rectangles[i].rect.bottom_left.y - y - r);
             if (y + r - dy <= rectangles[i].rect.bottom_left.y && std::max(future_x_left, (float)rectangles[i].rect.bottom_left.x) <= std::min(future_x_left + 2 * r, (float)rectangles[i].rect.top_right.x)){
                 dy *= -1.0;
-                dx *= 0.5;
                 y = rectangles[i].rect.bottom_left.y - r;
-                std::cout << y << " низ\n";
+                // std::cout << y << " низ\n";
             }
             else if (x - r - dx <= rectangles[i].rect.bottom_left.x)
             {
                 x = rectangles[i].rect.bottom_left.x - r;
                 dx *= -1.0;
-                dy *= 0.5;
-                std::cout << x << " лево\n";
+                // std::cout << x << " лево\n";
             }
             // верх
             else if (x - dx >= rectangles[i].rect.bottom_left.x && x - dx <= rectangles[i].rect.top_right.x && y + r - dy >= rectangles[i].rect.top_right.y)
             {
                 y = rectangles[i].rect.top_right.y + r;
                 dy *= -1.0;
-                dx * 1.0;
-                std::cout << i << " верх\n";
+                // std::cout << i << " верх\n";
             }
             // право
             else if (x + r - dx >= rectangles[i].rect.top_right.x)
             {
                 x = rectangles[i].rect.top_right.x + r;
                 dx *= -1.0;
-                dy *= 0.5;
-                std::cout << y << " право\n";
+                // std::cout << y << " право\n";
             }
             if (rectangles[i].durability > 0)
             {
@@ -127,5 +130,5 @@ void Ball::move(std::vector<BreakableRectangle>& rectangles)
 }
 void Ball::draw(Graphics& graphics)
 {
-    graphics.drawCircle({(int)x, (int)y}, {1.0f, 0.0f, 0.0f, 1.0f}, r, 10);
+    graphics.drawCircle({x, y}, {1.0f, 0.0f, 0.0f, 1.0f}, r, 10);
 }

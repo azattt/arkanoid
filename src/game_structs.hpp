@@ -11,7 +11,7 @@
 */
 struct WindowCoords
 {
-    int x, y;
+    float x, y;
 };
 
 /* 

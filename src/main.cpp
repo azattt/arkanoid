@@ -16,6 +16,8 @@
 #include "vars.hpp"
 
 unsigned int frame_counter = 0;
+bool capturing_ball = false;
+int captured_ball_index = 0;
 
 unsigned int textureID;
 
@@ -23,10 +25,11 @@ bool keys[256];
 
 const int TIME_DELTA = 10;
 
-int r_x = 350, r_y = 100, r_w = 100, r_h = 20;
+float r_x = 350, r_y = 100, r_w = 100, r_h = 20;
 const int DELTA_X = 10;
 
 float BONUS_FALL_SPEED = 2.0f;
+
 
 int screenWidth = 800, screenHeight = 600;
 const char windowTitle[] = "Arcanoid";
@@ -50,9 +53,9 @@ void generateMap()
         {
             int durability = rand() % 3 + 1; // Генерируем случайный индекс для выбора цвета
             durability = 1;
-            BonusType bonus_type = DoubleBalls;
+            BonusType bonus_type = BallCapture;
             rectangles.push_back(BreakableRectangle{
-                WindowCoordsRectangle{40 + x * 100, 500 - 30 * y, 40 + x * 100 + 80, 500 - 30 * y + 15}, durability,
+                WindowCoordsRectangle{40 + x * 100.0f, 500 - 30.0f * y, 40 + x * 100.0f + 80, 500 - 30.0f * y + 15}, durability,
                 baseColors[rand() % 3],
                 bonus_type});
         }
@@ -84,6 +87,15 @@ void Draw()
             r_x = 0;
         }
     }
+    else if (keys[' ']){
+        float angle = (float)(rand() % 100) / 100 + 0.3f;
+        if (rand() % 2){
+            angle = 3.14 - angle;   
+        }
+        balls[captured_ball_index].dx = 5.0f * std::cos(angle);
+        balls[captured_ball_index].dy = 5.0f * std::sin(angle);
+        captured_ball_index = -1;
+    }
     for (int i = 0; i < rectangles.size(); i++)
     {
         if (rectangles[i].durability)
@@ -91,10 +103,19 @@ void Draw()
             graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
         }
     }
-    for (auto &ball : balls)
+    for (int i = 0; i < balls.size(); i++)
     {
-        ball.move(rectangles);
-        ball.draw(graphics);
+        if (i == captured_ball_index){
+            balls[i].x = r_x + r_w / 2;
+        }
+        else{
+            balls[i].move(rectangles);
+            if (balls[i].x + balls[i].r < 0){
+                balls.erase(balls.begin() + i);
+                i -= 1;
+            }
+        }
+        balls[i].draw(graphics);
     }
 
     for (int i = 0; i < bonuses.size(); i++){
@@ -103,7 +124,27 @@ void Draw()
         if (bonuses[i].x - 10 <= r_x + r_w && bonuses[i].y - 10 <= r_y + r_h && bonuses[i].x + 10 >= r_x && bonuses[i].y + 10 >= r_y)
         {
             if (bonuses[i].bonus_type == DoubleBalls){
-                balls.push_back(Ball{r_x+r_w/2, r_y+r_h/2, 10});
+                int balls_count = balls.size();
+                for (int j = 0; j < balls_count; j++){
+                    float angle = (float)(rand() % 100) / 100 + 0.3f;
+                    if (rand() % 2){
+                        angle = 3.14 - angle;   
+                    }
+                    std::cout << angle << std::endl;
+                    balls.push_back(Ball{r_x+r_w/2, r_y+r_h/2, 10.0, 3.0f * std::cos(angle), 4.0f * std::sin(angle)});
+                }
+            }
+            else if (bonuses[i].bonus_type == DoublePlatform){
+                r_x -= r_w/2;
+                r_w *= 2;
+            }
+            else if (bonuses[i].bonus_type == BallCapture){
+                if (captured_ball_index == -1){
+                    capturing_ball = true;
+                }
+            }
+            else if (bonuses[i].bonus_type == ClearPenalties){
+
             }
             bonuses.erase(bonuses.begin() + i);
         }
@@ -228,12 +269,10 @@ int main(int argc, char **argv)
     //     balls.push_back(new_ball);
     // }
 
-    rectangles[0].rect = {0, 0, 800, 100};
-    rectangles[0].durability = -1;
+    // rectangles[0].rect = {0, 0, 800, 100};
+    // rectangles[0].durability = -1;
 
-    balls.push_back(Ball(500, 110, 10));
-    balls[balls.size()-1].dx = 2.0f;
-    balls[balls.size()-1].dy = 3.0f;
+    balls.push_back(Ball(r_x + r_w/2, r_y + r_h + 10, 10, 3, 4));
     glutMainLoop();
     return 0;
 }

@@ -10,11 +10,10 @@
 class Ball
 {
     public:
-    int r;
-    float x, y, dx, dy;
-    bool active;
+    int index;
+    float x, y, r, dx, dy;
     unsigned int textureID;
-    Ball(int x, int y, int r);
+    Ball(float x, float y, float r, float dx, float dy);
 
     void initializeTexture();
 

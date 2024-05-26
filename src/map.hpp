@@ -7,12 +7,12 @@
 
 enum BonusType{
     DoubleBalls,
-    LargerPlatform,
+    DoublePlatform,
     BallCapture,
-    NoPenalty,
-    NoBonus,
+    ClearPenalties,
+    ClearAll,
 
-    ShorterPlatform,
+    HalfPlatform,
     InverseControls
 };
 
