@@ -31,9 +31,8 @@ const int DELTA_X = 10;
 
 float BONUS_FALL_SPEED = 2.0f;
 
-
 int screenWidth = 800, screenHeight = 600;
-const char windowTitle[] = "Arcanoid";
+const char windowTitle[] = "Arkanoid";
 
 Graphics graphics(screenWidth, screenHeight);
 
@@ -41,7 +40,6 @@ Color baseColors[3];
 
 std::vector<Ball> balls;
 std::vector<BreakableRectangle> rectangles;
-
 
 void generateMap()
 {
@@ -89,11 +87,14 @@ void Draw()
             r_x = 0;
         }
     }
-    else if (keys[' ']){
-        if (captured_ball_index != -1){
+    else if (keys[' '])
+    {
+        if (captured_ball_index != -1)
+        {
             float angle = (float)(rand() % 100) / 100 + 0.3f;
-            if (rand() % 2){
-                angle = 3.14 - angle;   
+            if (rand() % 2)
+            {
+                angle = 3.14 - angle;
             }
             std::cout << balls[captured_ball_index].dx << std::endl;
             balls[captured_ball_index].dx = 5.0f * std::cos(angle);
@@ -110,12 +111,15 @@ void Draw()
     }
     for (int i = 0; i < balls.size(); i++)
     {
-        if (i == captured_ball_index){
+        if (i == captured_ball_index)
+        {
             balls[i].x = r_x + r_w / 2;
         }
-        else{
+        else
+        {
             balls[i].move(rectangles);
-            if (balls[i].x + balls[i].r < 0){
+            if (balls[i].x + balls[i].r < 0)
+            {
                 balls.erase(balls.begin() + i);
                 continue;
             }
@@ -123,49 +127,67 @@ void Draw()
         balls[i].draw(graphics);
     }
 
-    for (int i = 0; i < bonuses.size(); i++){
+    for (int i = 0; i < bonuses.size(); i++)
+    {
         bonuses[i].y -= BONUS_FALL_SPEED;
         Color color = {1.0f, 1.0f, 1.0f, 1.0f};
-        if (bonuses[i].bonus_type >= HalfPlatform){
+        if (bonuses[i].bonus_type >= HalfPlatform)
+        {
             color = {1.0f, 0.0f, 0.0f, 1.0f};
         }
         graphics.drawRectangle({bonuses[i].x - 10, bonuses[i].y - 10, bonuses[i].x + 10, bonuses[i].y + 10}, color);
         if (bonuses[i].x - 10 <= r_x + r_w && bonuses[i].y - 10 <= r_y + r_h && bonuses[i].x + 10 >= r_x && bonuses[i].y + 10 >= r_y)
         {
-            if (bonuses[i].bonus_type == DoubleBalls){
+            if (bonuses[i].bonus_type == DoubleBalls)
+            {
                 int balls_count = balls.size();
-                for (int j = 0; j < balls_count; j++){
+                for (int j = 0; j < balls_count; j++)
+                {
                     float angle = (float)(rand() % 100) / 100 + 0.3f;
-                    if (rand() % 2){
-                        angle = 3.14 - angle;   
+                    if (rand() % 2)
+                    {
+                        angle = 3.14 - angle;
                     }
-                    // std::cout << angle << std::endl;
-                    Ball ball(r_x+r_w/2, r_y+r_h/2, 10.0, 3.0f * std::cos(angle), 4.0f * std::sin(angle), balls_count+j);
+                    Ball ball(r_x + r_w / 2, r_y + r_h / 2, 10.0, 3.0f * std::cos(angle), 4.0f * std::sin(angle), balls_count + j);
                     balls.push_back(ball);
                 }
             }
-            else if (bonuses[i].bonus_type == DoublePlatform){
-                r_x -= r_w/2;
+            else if (bonuses[i].bonus_type == DoublePlatform)
+            {
+                r_x -= r_w / 2;
                 r_w *= 2;
             }
-            else if (bonuses[i].bonus_type == BallCapture){
-                if (captured_ball_index == -1){
+            else if (bonuses[i].bonus_type == BallCapture)
+            {
+                if (captured_ball_index == -1)
+                {
                     capturing_ball = true;
                 }
             }
-            else if (bonuses[i].bonus_type == ClearPenalties){
+            else if (bonuses[i].bonus_type == ClearPenalties)
+            {
+                r_w = 100;
+                inverted_controls = false;
 
             }
-            else if(bonuses[i].bonus_type == HalfPlatform){
-                r_x += r_w/4;
+            else if (bonuses[i].bonus_type == ClearAll)
+            {
+                capturing_ball = false;
+                r_w = 100;
+                inverted_controls = false;
+
+            }
+            else if (bonuses[i].bonus_type == HalfPlatform)
+            {
+                r_x += r_w / 4;
                 r_w /= 2;
             }
-            else if (bonuses[i].bonus_type == InvertedControls){
+            else if (bonuses[i].bonus_type == InvertedControls)
+            {
                 inverted_controls = true;
             }
             bonuses.erase(bonuses.begin() + i);
         }
-        
     }
 
     graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
@@ -177,7 +199,6 @@ void Draw()
     frame_counter += 1;
 }
 
-// https://stackoverflow.com/questions/31058604/limiting-fps-in-glut
 void Timer(int)
 {
     glutPostRedisplay();
@@ -244,7 +265,7 @@ int main(int argc, char **argv)
 
     srand(time(NULL)); // инициализация генератора случайных чисел
 
-    Ball ball(r_x + r_w/2, r_y + r_h + 10, 10, 3, 4, 0);
+    Ball ball(r_x + r_w / 2, r_y + r_h + 10, 10, 3, 4, 0);
     balls.push_back(ball);
     glutMainLoop();
     return 0;
