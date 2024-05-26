@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <ctime>
 #include <exception>
 #include <iostream>
@@ -25,6 +26,8 @@ const int TIME_DELTA = 10;
 int r_x = 350, r_y = 100, r_w = 100, r_h = 20;
 const int DELTA_X = 10;
 
+float BONUS_FALL_SPEED = 2.0f;
+
 int screenWidth = 800, screenHeight = 600;
 const char windowTitle[] = "Arcanoid";
 
@@ -35,6 +38,7 @@ Color baseColors[3];
 std::vector<Ball> balls;
 std::vector<BreakableRectangle> rectangles;
 
+
 void generateMap()
 {
     baseColors[0] = {1.0f, 0.0f, 1.0f, 1.0f}; // Фиолетовый
@@ -44,10 +48,13 @@ void generateMap()
     {
         for (int y = 0; y < 3; y++)
         {
-            int durability = rand() % 3 + 6; // Генерируем случайный индекс для выбора цвета
+            int durability = rand() % 3 + 1; // Генерируем случайный индекс для выбора цвета
+            durability = 1;
+            BonusType bonus_type = DoubleBalls;
             rectangles.push_back(BreakableRectangle{
                 WindowCoordsRectangle{40 + x * 100, 500 - 30 * y, 40 + x * 100 + 80, 500 - 30 * y + 15}, durability,
-                baseColors[rand() % 3]});
+                baseColors[rand() % 3],
+                bonus_type});
         }
     }
 }
@@ -84,13 +91,41 @@ void Draw()
             graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
         }
     }
-    for (auto &i : balls)
+    for (auto &ball : balls)
     {
-        i.move(rectangles);
-        i.draw(graphics);
+        ball.move(rectangles);
+        ball.draw(graphics);
     }
 
+    for (int i = 0; i < bonuses.size(); i++){
+        bonuses[i].y -= BONUS_FALL_SPEED;
+        graphics.drawRectangle({bonuses[i].x - 10, bonuses[i].y - 10, bonuses[i].x + 10, bonuses[i].y + 10});
+        if (bonuses[i].x - 10 <= r_x + r_w && bonuses[i].y - 10 <= r_y + r_h && bonuses[i].x + 10 >= r_x && bonuses[i].y + 10 >= r_y)
+        {
+            if (bonuses[i].bonus_type == DoubleBalls){
+                balls.push_back(Ball{r_x+r_w/2, r_y+r_h/2, 10});
+            }
+            bonuses.erase(bonuses.begin() + i);
+        }
+    }
+
+    Ball main_ball = balls[0];
+    // float future_x_left = (main_ball.x - main_ball.r) + (main_ball.dx/main_ball.dy) * (rectangles[19].rect.bottom_left.y - main_ball.y - main_ball.r);
+    // int i = 0;
+    // // std::cout << future_x_left << std::endl;
+    // glPushMatrix();
+    // glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
+    // glBegin(GL_QUADS);
+    // glVertex2f(main_ball.x - main_ball.r, main_ball.y + main_ball.r);
+    // glVertex2f(future_x_left, rectangles[i].rect.bottom_left.y);
+    // glVertex2f(future_x_left + 2 * main_ball.r, rectangles[i].rect.bottom_left.y);
+    // glVertex2f(main_ball.x + main_ball.r, main_ball.y + main_ball.r);
+    // glEnd();
+    // glPopMatrix();
+
     graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
+    // if (std::max(future_x_left, rectangles[i].rect.bottom_left.x) <= std::min(future_x_left + 2 * r, rectangles.rect.top_right.y)){
+
     GLenum errors = glGetError();
     if (errors)
         std::cout << "Ошибки OpenGL: " << errors << std::endl;
@@ -197,8 +232,8 @@ int main(int argc, char **argv)
     rectangles[0].durability = -1;
 
     balls.push_back(Ball(500, 110, 10));
-    balls[balls.size()-1].dx = -1;
-    balls[balls.size()-1].dy = 0;
+    balls[balls.size()-1].dx = 2.0f;
+    balls[balls.size()-1].dy = 3.0f;
     glutMainLoop();
     return 0;
 }
