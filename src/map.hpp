@@ -3,9 +3,8 @@
 #include <vector>
 #include "game_structs.hpp"
 
-
-
-enum BonusType{
+enum BonusType
+{
     DoubleBalls,
     DoublePlatform,
     BallCapture,
@@ -16,12 +15,14 @@ enum BonusType{
     InvertedControls
 };
 
-struct Bonus{
+struct Bonus
+{
     float x, y;
     BonusType bonus_type;
 };
 
-struct BreakableRectangle{
+struct BreakableRectangle
+{
     WindowCoordsRectangle rect;
     int durability;
     Color color;
