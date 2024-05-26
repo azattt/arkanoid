@@ -11,7 +11,7 @@
 
 std::vector<Bonus> bonuses;
 
-Ball::Ball(float x, float y, float r, float dx, float dy, int index): x(x), y(y), r(r), dx(dx), dy(dy), index(index)
+Ball::Ball(float x, float y, float r, float dx, float dy, int index) : x(x), y(y), r(r), dx(dx), dy(dy), index(index)
 {
 }
 void Ball::initializeTexture()
@@ -41,7 +41,7 @@ void Ball::initializeTexture()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Ball::move(std::vector<BreakableRectangle>& rectangles)
+void Ball::move(std::vector<BreakableRectangle> &rectangles)
 {
     x += dx;
     y += dy;
@@ -68,7 +68,8 @@ void Ball::move(std::vector<BreakableRectangle>& rectangles)
     {
         dy *= -1.0;
         y = r_y + r_h + r;
-        if (capturing_ball){
+        if (capturing_ball)
+        {
             dy = 0;
             dx = 0;
             x = r_x + r_w / 2;
@@ -91,8 +92,9 @@ void Ball::move(std::vector<BreakableRectangle>& rectangles)
             // лево
             // https://stackoverflow.com/questions/69997547/intersections-of-intervals
             // низ
-            float future_x_left = (x - r) + (dx/dy) * (rectangles[i].rect.bottom_left.y - y - r);
-            if (y + r - dy <= rectangles[i].rect.bottom_left.y && std::max(future_x_left, (float)rectangles[i].rect.bottom_left.x) <= std::min(future_x_left + 2 * r, (float)rectangles[i].rect.top_right.x)){
+            float future_x_left = (x - r) + (dx / dy) * (rectangles[i].rect.bottom_left.y - y - r);
+            if (y + r - dy <= rectangles[i].rect.bottom_left.y && std::max(future_x_left, (float)rectangles[i].rect.bottom_left.x) <= std::min(future_x_left + 2 * r, (float)rectangles[i].rect.top_right.x))
+            {
                 dy *= -1.0;
                 y = rectangles[i].rect.bottom_left.y - r;
                 // std::cout << y << " низ\n";
@@ -120,15 +122,16 @@ void Ball::move(std::vector<BreakableRectangle>& rectangles)
             if (rectangles[i].durability > 0)
             {
                 rectangles[i].durability -= 1;
-                if (rectangles[i].durability == 0){
-                    bonuses.push_back(Bonus{(rectangles[i].rect.top_right.x+rectangles[i].rect.bottom_left.x)/2.0f, (rectangles[i].rect.top_right.y+rectangles[i].rect.bottom_left.y)/2.0f,
-                    rectangles[i].bonus_type});
+                if (rectangles[i].durability == 0)
+                {
+                    bonuses.push_back(Bonus{(rectangles[i].rect.top_right.x + rectangles[i].rect.bottom_left.x) / 2.0f, (rectangles[i].rect.top_right.y + rectangles[i].rect.bottom_left.y) / 2.0f,
+                                            rectangles[i].bonus_type});
                 }
             }
         }
     }
 }
-void Ball::draw(Graphics& graphics)
+void Ball::draw(Graphics &graphics)
 {
     graphics.drawCircle({x, y}, {1.0f, 0.0f, 0.0f, 1.0f}, r, 10);
 }

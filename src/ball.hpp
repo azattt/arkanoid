@@ -5,11 +5,9 @@
 #include "draw_utilities.hpp"
 #include "map.hpp"
 
-
-
 class Ball
 {
-    public:
+public:
     int index;
     float x, y, r, dx, dy;
     unsigned int textureID;
@@ -17,7 +15,6 @@ class Ball
 
     void initializeTexture();
 
-    void move(std::vector<BreakableRectangle>& rectangles);
-    void draw(Graphics& graphics);
-
+    void move(std::vector<BreakableRectangle> &rectangles);
+    void draw(Graphics &graphics);
 };
