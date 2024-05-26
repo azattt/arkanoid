@@ -13,7 +13,7 @@ class Ball
     int index;
     float x, y, r, dx, dy;
     unsigned int textureID;
-    Ball(float x, float y, float r, float dx, float dy);
+    Ball(float x, float y, float r, float dx, float dy, int index);
 
     void initializeTexture();
 

@@ -18,6 +18,7 @@
 unsigned int frame_counter = 0;
 bool capturing_ball = false;
 int captured_ball_index = 0;
+bool inverted_controls = false;
 
 unsigned int textureID;
 
@@ -53,7 +54,8 @@ void generateMap()
         {
             int durability = rand() % 3 + 1; // Генерируем случайный индекс для выбора цвета
             durability = 1;
-            BonusType bonus_type = BallCapture;
+            BonusType bonus_type = BonusType(rand() % 7);
+            // std::cout << bonus_type << std::endl;
             rectangles.push_back(BreakableRectangle{
                 WindowCoordsRectangle{40 + x * 100.0f, 500 - 30.0f * y, 40 + x * 100.0f + 80, 500 - 30.0f * y + 15}, durability,
                 baseColors[rand() % 3],
@@ -65,7 +67,7 @@ void generateMap()
 void Draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    if (keys['D'])
+    if (!inverted_controls && keys['D'] || keys['A'] && inverted_controls)
     {
         if (r_x + r_w < screenWidth)
         {
@@ -76,7 +78,7 @@ void Draw()
             r_x = 800 - r_w;
         }
     }
-    else if (keys['A'])
+    else if (!inverted_controls && keys['A'] || keys['D'] && inverted_controls)
     {
         if (r_x - DELTA_X > 0)
         {
@@ -88,13 +90,16 @@ void Draw()
         }
     }
     else if (keys[' ']){
-        float angle = (float)(rand() % 100) / 100 + 0.3f;
-        if (rand() % 2){
-            angle = 3.14 - angle;   
+        if (captured_ball_index != -1){
+            float angle = (float)(rand() % 100) / 100 + 0.3f;
+            if (rand() % 2){
+                angle = 3.14 - angle;   
+            }
+            std::cout << balls[captured_ball_index].dx << std::endl;
+            balls[captured_ball_index].dx = 5.0f * std::cos(angle);
+            balls[captured_ball_index].dy = 5.0f * std::sin(angle);
+            captured_ball_index = -1;
         }
-        balls[captured_ball_index].dx = 5.0f * std::cos(angle);
-        balls[captured_ball_index].dy = 5.0f * std::sin(angle);
-        captured_ball_index = -1;
     }
     for (int i = 0; i < rectangles.size(); i++)
     {
@@ -112,7 +117,7 @@ void Draw()
             balls[i].move(rectangles);
             if (balls[i].x + balls[i].r < 0){
                 balls.erase(balls.begin() + i);
-                i -= 1;
+                continue;
             }
         }
         balls[i].draw(graphics);
@@ -120,7 +125,11 @@ void Draw()
 
     for (int i = 0; i < bonuses.size(); i++){
         bonuses[i].y -= BONUS_FALL_SPEED;
-        graphics.drawRectangle({bonuses[i].x - 10, bonuses[i].y - 10, bonuses[i].x + 10, bonuses[i].y + 10});
+        Color color = {1.0f, 1.0f, 1.0f, 1.0f};
+        if (bonuses[i].bonus_type >= HalfPlatform){
+            color = {1.0f, 0.0f, 0.0f, 1.0f};
+        }
+        graphics.drawRectangle({bonuses[i].x - 10, bonuses[i].y - 10, bonuses[i].x + 10, bonuses[i].y + 10}, color);
         if (bonuses[i].x - 10 <= r_x + r_w && bonuses[i].y - 10 <= r_y + r_h && bonuses[i].x + 10 >= r_x && bonuses[i].y + 10 >= r_y)
         {
             if (bonuses[i].bonus_type == DoubleBalls){
@@ -130,8 +139,9 @@ void Draw()
                     if (rand() % 2){
                         angle = 3.14 - angle;   
                     }
-                    std::cout << angle << std::endl;
-                    balls.push_back(Ball{r_x+r_w/2, r_y+r_h/2, 10.0, 3.0f * std::cos(angle), 4.0f * std::sin(angle)});
+                    // std::cout << angle << std::endl;
+                    Ball ball(r_x+r_w/2, r_y+r_h/2, 10.0, 3.0f * std::cos(angle), 4.0f * std::sin(angle), balls_count+j);
+                    balls.push_back(ball);
                 }
             }
             else if (bonuses[i].bonus_type == DoublePlatform){
@@ -146,8 +156,16 @@ void Draw()
             else if (bonuses[i].bonus_type == ClearPenalties){
 
             }
+            else if(bonuses[i].bonus_type == HalfPlatform){
+                r_x += r_w/4;
+                r_w /= 2;
+            }
+            else if (bonuses[i].bonus_type == InvertedControls){
+                inverted_controls = true;
+            }
             bonuses.erase(bonuses.begin() + i);
         }
+        
     }
 
     graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
@@ -226,8 +244,8 @@ int main(int argc, char **argv)
 
     srand(time(NULL)); // инициализация генератора случайных чисел
 
-
-    balls.push_back(Ball(r_x + r_w/2, r_y + r_h + 10, 10, 3, 4));
+    Ball ball(r_x + r_w/2, r_y + r_h + 10, 10, 3, 4, 0);
+    balls.push_back(ball);
     glutMainLoop();
     return 0;
 }

@@ -11,7 +11,7 @@
 
 std::vector<Bonus> bonuses;
 
-Ball::Ball(float x, float y, float r, float dx, float dy): x(x), y(y), r(r), dx(dx), dy(dy)
+Ball::Ball(float x, float y, float r, float dx, float dy, int index): x(x), y(y), r(r), dx(dx), dy(dy), index(index)
 {
 }
 void Ball::initializeTexture()
