@@ -150,22 +150,7 @@ void Draw()
         }
     }
 
-    Ball main_ball = balls[0];
-    // float future_x_left = (main_ball.x - main_ball.r) + (main_ball.dx/main_ball.dy) * (rectangles[19].rect.bottom_left.y - main_ball.y - main_ball.r);
-    // int i = 0;
-    // // std::cout << future_x_left << std::endl;
-    // glPushMatrix();
-    // glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
-    // glBegin(GL_QUADS);
-    // glVertex2f(main_ball.x - main_ball.r, main_ball.y + main_ball.r);
-    // glVertex2f(future_x_left, rectangles[i].rect.bottom_left.y);
-    // glVertex2f(future_x_left + 2 * main_ball.r, rectangles[i].rect.bottom_left.y);
-    // glVertex2f(main_ball.x + main_ball.r, main_ball.y + main_ball.r);
-    // glEnd();
-    // glPopMatrix();
-
     graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
-    // if (std::max(future_x_left, rectangles[i].rect.bottom_left.x) <= std::min(future_x_left + 2 * r, rectangles.rect.top_right.y)){
 
     GLenum errors = glGetError();
     if (errors)
@@ -227,21 +212,7 @@ int main(int argc, char **argv)
     // https://stackoverflow.com/questions/28052053/c-glut-opengl-resize-window-event
     glutReshapeFunc(reshapeCallback);
 
-    int x = 200;
-    int y = 200;
-    int pr_width = 200;
-    int pr_height = 30;
     generateMap();
-    // for (int i = 1; i < 7; i++){
-    //     rectangles[i].rect = {x, y+pr_height*(i-1), x+pr_width, y+pr_height*i};
-    //     rectangles[i].durability = -1;
-    // }
-    // rectangles[1].color = {228.0f / 255, 3.0f / 255, 3.0f / 255, 1.0f};
-    // rectangles[2].color = {255.0f / 255, 140.0f / 255, 0.0f / 255, 1.0f};
-    // rectangles[3].color = {255.0f / 255, 237.0f / 255, 0.0f / 255, 1.0f};
-    // rectangles[4].color = {0.0f / 255, 128.0f / 255, 38.0f / 255, 1.0f};
-    // rectangles[5].color = {36.0f / 255, 64.0f / 255, 142.0f / 255, 1.0f};
-    // rectangles[6].color = {115.0f / 255, 41.0f / 255, 130.0f / 255, 1.0f};
 
     glutTimerFunc(TIME_DELTA, Timer, 0);
     glutDisplayFunc(Draw);
@@ -255,22 +226,6 @@ int main(int argc, char **argv)
 
     srand(time(NULL)); // инициализация генератора случайных чисел
 
-    float angle = -30 / 180.0f * 3.1415926f;
-    // for (int i = 0; i < 1000; i++)
-    // {
-    //     Ball new_ball(400, 300, 2);
-    //     float speed = 20.0f;
-    //     float angle = rand();
-    //     new_ball.dx = speed * std::cos(angle);
-    //     new_ball.dy = speed * std::sin(angle);
-    //     // new_ball.dx = new_ball.dy = 0;
-    //     // new_ball.dx = -1;
-    //     // std::cout << new_ball.dx << " " << new_ball.dy << " " << speed << std::endl;
-    //     balls.push_back(new_ball);
-    // }
-
-    // rectangles[0].rect = {0, 0, 800, 100};
-    // rectangles[0].durability = -1;
 
     balls.push_back(Ball(r_x + r_w/2, r_y + r_h + 10, 10, 3, 4));
     glutMainLoop();
