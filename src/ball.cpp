@@ -8,6 +8,7 @@
 #include <stb_image.h>
 
 #include "vars.hpp"
+#include "gui.hpp"
 
 std::vector<Bonus> bonuses;
 

@@ -9,11 +9,18 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include "ball.hpp"
 #include "draw_utilities.hpp"
 #include "game_structs.hpp"
 #include "map.hpp"
 #include "vars.hpp"
+#include "gui.hpp"
+
+FT_Library library;
+GUI game_menu;
 
 unsigned int frame_counter = 0;
 bool capturing_ball = false;
@@ -62,135 +69,145 @@ void generateMap()
     }
 }
 
+enum GameStates{
+  Game,
+  Menu  
+};
+
+GameStates state = Menu;
+
 void Draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    if (!inverted_controls && keys['D'] || keys['A'] && inverted_controls)
-    {
-        if (r_x + r_w < screenWidth)
+    if (state == Game){
+        if (!inverted_controls && keys['D'] || keys['A'] && inverted_controls)
         {
-            r_x += DELTA_X;
-        }
-        else
-        {
-            r_x = 800 - r_w;
-        }
-    }
-    else if (!inverted_controls && keys['A'] || keys['D'] && inverted_controls)
-    {
-        if (r_x - DELTA_X > 0)
-        {
-            r_x = r_x - DELTA_X;
-        }
-        else
-        {
-            r_x = 0;
-        }
-    }
-    else if (keys[' '])
-    {
-        if (captured_ball_index != -1)
-        {
-            float angle = (float)(rand() % 100) / 100 + 0.3f;
-            if (rand() % 2)
+            if (r_x + r_w < screenWidth)
             {
-                angle = 3.14 - angle;
+                r_x += DELTA_X;
             }
-            std::cout << balls[captured_ball_index].dx << std::endl;
-            balls[captured_ball_index].dx = 5.0f * std::cos(angle);
-            balls[captured_ball_index].dy = 5.0f * std::sin(angle);
-            captured_ball_index = -1;
-        }
-    }
-    for (int i = 0; i < rectangles.size(); i++)
-    {
-        if (rectangles[i].durability)
-        {
-            graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
-        }
-    }
-    for (int i = 0; i < balls.size(); i++)
-    {
-        if (i == captured_ball_index)
-        {
-            balls[i].x = r_x + r_w / 2;
-        }
-        else
-        {
-            balls[i].move(rectangles);
-            if (balls[i].x + balls[i].r < 0)
+            else
             {
-                balls.erase(balls.begin() + i);
-                continue;
+                r_x = 800 - r_w;
             }
         }
-        balls[i].draw(graphics);
-    }
-
-    for (int i = 0; i < bonuses.size(); i++)
-    {
-        bonuses[i].y -= BONUS_FALL_SPEED;
-        Color color = {1.0f, 1.0f, 1.0f, 1.0f};
-        if (bonuses[i].bonus_type >= HalfPlatform)
+        else if (!inverted_controls && keys['A'] || keys['D'] && inverted_controls)
         {
-            color = {1.0f, 0.0f, 0.0f, 1.0f};
-        }
-        graphics.drawRectangle({bonuses[i].x - 10, bonuses[i].y - 10, bonuses[i].x + 10, bonuses[i].y + 10}, color);
-        if (bonuses[i].x - 10 <= r_x + r_w && bonuses[i].y - 10 <= r_y + r_h && bonuses[i].x + 10 >= r_x && bonuses[i].y + 10 >= r_y)
-        {
-            if (bonuses[i].bonus_type == DoubleBalls)
+            if (r_x - DELTA_X > 0)
             {
-                int balls_count = balls.size();
-                for (int j = 0; j < balls_count; j++)
+                r_x = r_x - DELTA_X;
+            }
+            else
+            {
+                r_x = 0;
+            }
+        }
+        else if (keys[' '])
+        {
+            if (captured_ball_index != -1)
+            {
+                float angle = (float)(rand() % 100) / 100 + 0.3f;
+                if (rand() % 2)
                 {
-                    float angle = (float)(rand() % 100) / 100 + 0.3f;
-                    if (rand() % 2)
+                    angle = 3.14 - angle;
+                }
+                std::cout << balls[captured_ball_index].dx << std::endl;
+                balls[captured_ball_index].dx = 5.0f * std::cos(angle);
+                balls[captured_ball_index].dy = 5.0f * std::sin(angle);
+                captured_ball_index = -1;
+            }
+        }
+        for (int i = 0; i < rectangles.size(); i++)
+        {
+            if (rectangles[i].durability)
+            {
+                graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
+            }
+        }
+        for (int i = 0; i < balls.size(); i++)
+        {
+            if (i == captured_ball_index)
+            {
+                balls[i].x = r_x + r_w / 2;
+            }
+            else
+            {
+                balls[i].move(rectangles);
+                if (balls[i].x + balls[i].r < 0)
+                {
+                    balls.erase(balls.begin() + i);
+                    continue;
+                }
+            }
+            balls[i].draw(graphics);
+        }
+        for (int i = 0; i < bonuses.size(); i++)
+        {
+            bonuses[i].y -= BONUS_FALL_SPEED;
+            Color color = {1.0f, 1.0f, 1.0f, 1.0f};
+            if (bonuses[i].bonus_type >= HalfPlatform)
+            {
+                color = {1.0f, 0.0f, 0.0f, 1.0f};
+            }
+            graphics.drawRectangle({bonuses[i].x - 10, bonuses[i].y - 10, bonuses[i].x + 10, bonuses[i].y + 10}, color);
+            if (bonuses[i].x - 10 <= r_x + r_w && bonuses[i].y - 10 <= r_y + r_h && bonuses[i].x + 10 >= r_x && bonuses[i].y + 10 >= r_y)
+            {
+                if (bonuses[i].bonus_type == DoubleBalls)
+                {
+                    int balls_count = balls.size();
+                    for (int j = 0; j < balls_count; j++)
                     {
-                        angle = 3.14 - angle;
+                        float angle = (float)(rand() % 100) / 100 + 0.3f;
+                        if (rand() % 2)
+                        {
+                            angle = 3.14 - angle;
+                        }
+                        Ball ball(r_x + r_w / 2, r_y + r_h / 2, 10.0, 3.0f * std::cos(angle), 4.0f * std::sin(angle), balls_count + j);
+                        balls.push_back(ball);
                     }
-                    Ball ball(r_x + r_w / 2, r_y + r_h / 2, 10.0, 3.0f * std::cos(angle), 4.0f * std::sin(angle), balls_count + j);
-                    balls.push_back(ball);
                 }
-            }
-            else if (bonuses[i].bonus_type == DoublePlatform)
-            {
-                r_x -= r_w / 2;
-                r_w *= 2;
-            }
-            else if (bonuses[i].bonus_type == BallCapture)
-            {
-                if (captured_ball_index == -1)
+                else if (bonuses[i].bonus_type == DoublePlatform)
                 {
-                    capturing_ball = true;
+                    r_x -= r_w / 2;
+                    r_w *= 2;
                 }
-            }
-            else if (bonuses[i].bonus_type == ClearPenalties)
-            {
-                r_w = 100;
-                inverted_controls = false;
+                else if (bonuses[i].bonus_type == BallCapture)
+                {
+                    if (captured_ball_index == -1)
+                    {
+                        capturing_ball = true;
+                    }
+                }
+                else if (bonuses[i].bonus_type == ClearPenalties)
+                {
+                    r_w = 100;
+                    inverted_controls = false;
 
-            }
-            else if (bonuses[i].bonus_type == ClearAll)
-            {
-                capturing_ball = false;
-                r_w = 100;
-                inverted_controls = false;
+                }
+                else if (bonuses[i].bonus_type == ClearAll)
+                {
+                    capturing_ball = false;
+                    r_w = 100;
+                    inverted_controls = false;
 
+                }
+                else if (bonuses[i].bonus_type == HalfPlatform)
+                {
+                    r_x += r_w / 4;
+                    r_w /= 2;
+                }
+                else if (bonuses[i].bonus_type == InvertedControls)
+                {
+                    inverted_controls = true;
+                }
+                bonuses.erase(bonuses.begin() + i);
             }
-            else if (bonuses[i].bonus_type == HalfPlatform)
-            {
-                r_x += r_w / 4;
-                r_w /= 2;
-            }
-            else if (bonuses[i].bonus_type == InvertedControls)
-            {
-                inverted_controls = true;
-            }
-            bonuses.erase(bonuses.begin() + i);
         }
+        graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
     }
-
-    graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
+    else if (state == Menu){
+        game_menu.draw(graphics);
+    }
 
     GLenum errors = glGetError();
     if (errors)
@@ -264,6 +281,13 @@ int main(int argc, char **argv)
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     srand(time(NULL)); // инициализация генератора случайных чисел
+
+    FT_Error error = FT_Init_FreeType(&library);
+    if (error){
+        std::cout << "Ошибка загрузки FreeType: " << error << std::endl;
+    }
+    
+    game_menu.init(library);
 
     Ball ball(r_x + r_w / 2, r_y + r_h + 10, 10, 3, 4, 0);
     balls.push_back(ball);
