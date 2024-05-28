@@ -6,6 +6,8 @@
 #include <string>
 #include <map>
 
+#include <GL/glut.h>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -20,6 +22,8 @@ struct Character{
 
 class GUI{
     public:
+    bool leftMousePressed = false;
+
     FT_Face face;
     std::map<int, std::map<char32_t, Character>> utf8_characters;
 
@@ -27,7 +31,9 @@ class GUI{
     void generateAlphabet(char32_t start, char32_t end, int pixelSize){
         assert(start <= end);
         FT_Set_Pixel_Sizes(face, 0, pixelSize);
-        utf8_characters[pixelSize] = std::map<char32_t, Character>();
+        if (utf8_characters.count(pixelSize) == 0){
+            utf8_characters[pixelSize] = std::map<char32_t, Character>();
+        }
         unsigned int textureIDs[end-start+1];
         glGenTextures(end-start+1, textureIDs);
         for (int i = 0; i < end-start+1; i++){
@@ -56,37 +62,70 @@ class GUI{
 #ifdef __linux__
         font_path = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf";
 #elif _WIN32
-        font_path = "C:/Windows/Fonts/arial.ttf";
+        font_path = "C:/Windows/Fonts/Verdana.ttf";
 #endif
         
         FT_Error error = FT_New_Face(library, font_path, 0, &face);
         if ( error == FT_Err_Unknown_File_Format )
         {
             std::cout << "Не удалось загрузить шрифт: \"" << font_path << "\". Ошибка: FT_Err_Unknown_File_Format (формат не распознан)" << std::endl;
+            return;
         }
         else if ( error )
         {
             std::cout << "Не удалось загрузить шрифт: \"" << font_path << "\". Ошибка: " << error << std::endl;
+            return;
         }
         std::cout << "Шрифт \"" << font_path << "\" загружен. Количество глифов: " << face->num_glyphs << std::endl;
         error = FT_Set_Pixel_Sizes(face, 0, 16);
         if (error){
             std::cout << "Ошибка freetype: " << error << std::endl;
+            return;
         }
         generateAlphabet(U'А', u'я', 50);
         generateAlphabet(U' ', U' ', 50);
         generateAlphabet(U'A', U'z', 50);
+        generateAlphabet(U'А', u'я', 20);
+        generateAlphabet(U' ', U' ', 20);
+        generateAlphabet(U'A', U'z', 20);
     }
-    void drawMenu(Graphics graphics){
-        std::u32string test_str(U"Arkanoid");
-        float left = 300.0f, top = 500.0f;
-        for (char32_t s: test_str){
-            Character character = utf8_characters[50][s];
-            graphics.drawRectangleWithTexture({left+character.x_offset, top-(character.height-character.y_offset)}, character.width, character.height, character.textureID, true);
+    float getStringSize(std::u32string str, int pixelSize){
+        float left = 0.0f;
+        for (char32_t s: str){
+            Character character = utf8_characters[pixelSize][s];
             left += character.advance / 64;
-            // std::cout << left << std::endl;
-            
+        }        
+        return left;
+    }
+    float drawString(const Graphics& graphics, WindowCoords coords, std::u32string str, int pixelSize, Color color={1.0f, 1.0f, 1.0f, 1.0f}){
+        float left = coords.x, top = coords.y;
+        for (char32_t s: str){
+            Character character = utf8_characters[pixelSize][s];
+            graphics.drawRectangleWithTexture({left+character.x_offset, top-(character.height-character.y_offset)}, character.width, character.height, character.textureID, true, color);
+            left += character.advance / 64;
         }
+        return left;
+    }
+    float drawStringCentered(const Graphics& graphics, WindowCoords center, std::u32string str, int pixelSize, Color color={1.0f, 1.0f, 1.0f, 1.0f}){
+        float width = getStringSize(str, pixelSize);
+        drawString(graphics, {center.x-width/2, center.y}, str, pixelSize, color);
+        return width;
+    }
+    void drawButton(const Graphics& graphics, WindowCoords center, float w, float h, std::u32string str, int pixelSize, Color bgColor, Color fgColor={1.0f, 1.0f, 1.0f, 1.0f}){
+        graphics.drawRectangle({center.x-w/2, center.y-h/2, center.x+w/2, center.y+h/2}, bgColor);
+        drawStringCentered(graphics, {center.x, center.y - pixelSize/2}, str, 20, fgColor);
+    }
 
+    static void startGameCallback(int button, int state, int x, int y);
+    void setMenuCallbacks(){
+        glutMouseFunc(startGameCallback);
+    }
+    void drawMenu(Graphics& graphics){
+        drawStringCentered(graphics, {400.0f, 500.0f}, U"Arkanoid", 50);
+        drawButton(graphics, {400.f, 300.f}, 300.0f, 80.0f, U"Новая игра", 20, {0.2f, 0.5f, 0.0f, 1.0f});
+    }
+    void drawLose(Graphics& graphics){
+        drawStringCentered(graphics, {400.0f, 500.0f}, U"Вы проиграли", 50);
+        drawButton(graphics, {400.0f, 300.0f}, 300.0f, 80.0f, U"Начать снова?", 20, {0.2f, 0.5f, 0.0f, 1.0f});
     }
 };

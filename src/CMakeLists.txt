@@ -4,7 +4,6 @@ project(arkanoid VERSION 0.1.0 LANGUAGES C CXX)
 # add_executable(arkanoid main.cpp draw_utilities.cpp)
 add_executable(arkanoid main.cpp ball.cpp vars.hpp draw_utilities.cpp gui.hpp)
 
-
 if (WIN32)
     target_link_libraries(arkanoid -lfreeglut -lopengl32 -lfreetype)
     target_include_directories(arkanoid PRIVATE "../deps" PRIVATE "D:/programs/msys/mingw64/include/freetype2")

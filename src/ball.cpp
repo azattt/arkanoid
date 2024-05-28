@@ -22,13 +22,13 @@ void Ball::initializeTexture()
     unsigned char *image = stbi_load("./resources/svaston2.png", &width, &height, &channels, 0);
     if (image == nullptr)
     {
-        // std::cout << "Не удалось загрузить текстуру с диска" << std::endl;
+        std::cout << "Не удалось загрузить текстуру с диска" << std::endl;
     }
 
     glGenTextures(1, &textureID);
     if (textureID == 0)
     {
-        // std::cout << "Не удалось создать текстуру" << std::endl;
+        std::cout << "Не удалось создать текстуру" << std::endl;
     }
 
     // std::cout << width << " " << height << " " << channels << std::endl;
