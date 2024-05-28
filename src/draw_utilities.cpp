@@ -63,7 +63,7 @@ void Graphics::drawRectangle(WindowCoords coord, int w, int h, Color color, int 
     drawRectangle({coord.x, coord.y, coord.x + w, coord.y + h}, color, angle);
 }
 
-void Graphics::drawRectangleWithTexture(WindowCoordsRectangle coords, unsigned int textureID, int angle)
+void Graphics::drawRectangleWithTexture(WindowCoordsRectangle coords, unsigned int textureID, Color color, int angle)
 {
     if (coords.top_right.x < coords.bottom_left.x)
     {
@@ -83,7 +83,7 @@ void Graphics::drawRectangleWithTexture(WindowCoordsRectangle coords, unsigned i
         glTranslatef(-(coords.top_right.x - coords.bottom_left.x) / 2, -(coords.top_right.y - coords.bottom_left.y) / 2, 0.0f);
     }
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glColor4f(color.r, color.g, color.b, color.a);
     glBegin(GL_TRIANGLES);
     glTexCoord2f(0.0f, 0.0f);
     glVertex2f(coords.bottom_left.x, coords.bottom_left.y);
@@ -102,9 +102,9 @@ void Graphics::drawRectangleWithTexture(WindowCoordsRectangle coords, unsigned i
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Graphics::drawRectangleWithTexture(WindowCoords coord, int w, int h, unsigned int textureID, int angle)
+void Graphics::drawRectangleWithTexture(WindowCoords coord, int w, int h, unsigned int textureID, Color color, int angle)
 {
-    drawRectangleWithTexture({coord.x, coord.y, coord.x + w, coord.y + h}, textureID, angle);
+    drawRectangleWithTexture({coord.x, coord.y, coord.x + w, coord.y + h}, textureID, color, angle);
 }
 
 void Graphics::drawCircle(WindowCoords coord, const Color color, unsigned int radius, unsigned int vert_count)
