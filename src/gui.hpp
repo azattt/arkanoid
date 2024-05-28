@@ -26,7 +26,7 @@ class GUI{
 #ifdef __linux__
         font_path = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf";
 #elif _WIN32
-#error "Нужно задать путь до шрифта"; 
+        font_path = "C:/Windows/Fonts/arial.ttf";
 #endif
         
         FT_Error error = FT_New_Face(library, font_path, 0, &face);
