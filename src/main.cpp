@@ -206,7 +206,7 @@ void Draw()
         graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
     }
     else if (state == Menu){
-        game_menu.draw(graphics);
+        game_menu.drawMenu(graphics);
     }
 
     GLenum errors = glGetError();
