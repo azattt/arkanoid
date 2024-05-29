@@ -128,4 +128,8 @@ class GUI{
         drawStringCentered(graphics, {400.0f, 500.0f}, U"Вы проиграли", 50);
         drawButton(graphics, {400.0f, 300.0f}, 300.0f, 80.0f, U"Начать снова?", 20, {0.2f, 0.5f, 0.0f, 1.0f});
     }
+    void drawWin(Graphics& graphics){
+        drawStringCentered(graphics, {400.0f, 500.0f}, U"Вы выиграли", 50);
+        drawButton(graphics, {400.0f, 300.0f}, 300.0f, 80.0f, U"Начать снова?", 20, {0.2f, 0.5f, 0.0f, 1.0f});
+    }
 };

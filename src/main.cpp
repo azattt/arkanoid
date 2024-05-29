@@ -2,8 +2,8 @@
 #include <ctime>
 #include <exception>
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include <GL/glut.h>
 
@@ -16,27 +16,29 @@
 #include "ball.hpp"
 #include "draw_utilities.hpp"
 #include "game_structs.hpp"
+#include "gui.hpp"
 #include "map.hpp"
 #include "vars.hpp"
-#include "gui.hpp"
 
 FT_Library library;
 GUI game_gui;
 
 unsigned int frame_counter = 0;
-bool capturing_ball = false;
+bool capturing_ball = true;
 int captured_ball_index = 0;
 bool inverted_controls = false;
-
-unsigned int textureID;
 
 bool keys[256];
 
 const int TIME_DELTA = 10;
 
 float r_x = 350, r_y = 100, r_w = 100, r_h = 20;
+float bonus_width = 40;
+float bonus_height = 20;
+
 float ball_radius = 8.0f;
-const int DELTA_X = 10;
+float ball_axis_speed = 7.0f;
+const int DELTA_X = 20;
 
 float BONUS_FALL_SPEED = 2.0f;
 
@@ -52,6 +54,16 @@ std::vector<BreakableRectangle> rectangles;
 
 unsigned int bonusTextures[7];
 
+enum GameStates
+{
+    Game,
+    Menu,
+    Lose,
+    Win
+};
+
+GameStates game_state = Menu;
+
 void generateMap()
 {
     baseColors[0] = {1.0f, 0.0f, 1.0f, 1.0f}; // Фиолетовый
@@ -62,235 +74,209 @@ void generateMap()
         for (int y = 0; y < 4; y++)
         {
             int durability = rand() % 3 + 1; // Генерируем случайный индекс для выбора цвета
-            durability = 1;
-            BonusType bonus_type = BonusType(rand() % 7);
-            // std::cout << bonus_type << std::endl;
+            BonusType bonus_type = NoBonus;
+            // вероятность бонуса 50%;
+            if (rand() % 2){
+                bonus_type = BonusType(rand() % 7);
+            }
             rectangles.push_back(BreakableRectangle{
-                WindowCoordsRectangle{10 + x * 80.0f, 500 - 30.0f * y, 10 + x * 80.0f + 65, 500 - 30.0f * y + 15}, durability,
-                baseColors[rand() % 3],
-                bonus_type});
+                WindowCoordsRectangle{10 + x * 80.0f, 500 - 30.0f * y, 10 + x * 80.0f + 65, 500 - 30.0f * y + 15},
+                durability, baseColors[durability - 1], bonus_type});
         }
     }
 }
 
-enum GameStates{
-  Game,
-  Menu,
-  Lose
-};
-
-GameStates game_state = Menu;
-
+void handle_game_keyboard()
+{
+    if (!inverted_controls && keys['D'] || keys['A'] && inverted_controls)
+    {
+        if (r_x + r_w < screenWidth)
+        {
+            r_x += DELTA_X;
+        }
+        else
+        {
+            r_x = 800 - r_w;
+        }
+    }
+    else if (!inverted_controls && keys['A'] || keys['D'] && inverted_controls)
+    {
+        if (r_x - DELTA_X > 0)
+        {
+            r_x = r_x - DELTA_X;
+        }
+        else
+        {
+            r_x = 0;
+        }
+    }
+    else if (keys[' '])
+    {
+        if (captured_ball_index != -1)
+        {
+            float angle = (float)(rand() % 100) / 100 + 0.3f;
+            if (rand() % 2)
+            {
+                angle = 3.14 - angle;
+            }
+            balls[captured_ball_index].dx = ball_axis_speed * std::cos(angle);
+            balls[captured_ball_index].dy = ball_axis_speed * std::sin(angle);
+            captured_ball_index = -1;
+        }
+    }
+}
+void draw_map()
+{
+    bool at_least_one_rectangle_alive = false;
+    for (int i = 0; i < rectangles.size(); i++)
+    {
+        if (rectangles[i].durability > 0)
+        {
+            graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
+            at_least_one_rectangle_alive = true;
+        }
+    }
+    if (!at_least_one_rectangle_alive){
+        game_state = Win;
+    }
+}
+void draw_balls()
+{
+    bool at_least_one_ball_is_alive = false;
+    for (int i = 0; i < balls.size(); i++)
+    {
+        if (i == captured_ball_index)
+        {
+            balls[i].x = r_x + r_w / 2;
+        }
+        else
+        {
+            balls[i].move(rectangles);
+            if (balls[i].y + balls[i].r < 0)
+            {
+                balls.erase(balls.begin() + i);
+                i--;
+                continue;
+            }
+        }
+        at_least_one_ball_is_alive = true;
+        balls[i].draw(graphics);
+    }
+    if (!at_least_one_ball_is_alive)
+    {
+        game_state = Lose;
+    }
+}
+void draw_bonus()
+{
+    for (int i = 0; i < bonuses.size(); i++)
+    {
+        bonuses[i].y -= BONUS_FALL_SPEED;
+        graphics.drawRectangleWithTexture({bonuses[i].x - bonus_width / 2, bonuses[i].y - bonus_height / 2,
+                                           bonuses[i].x + bonus_width / 2, bonuses[i].y + bonus_height / 2},
+                                          bonusTextures[bonuses[i].bonus_type]);
+        if (bonuses[i].x - bonus_width / 2 <= r_x + r_w && bonuses[i].y - bonus_height / 2 <= r_y + r_h &&
+            bonuses[i].x + bonus_width / 2 >= r_x && bonuses[i].y + bonus_height / 2 >= r_y)
+        {
+            if (bonuses[i].bonus_type == DoubleBalls)
+            {
+                int balls_count = balls.size();
+                for (int j = 0; j < balls_count; j++)
+                {
+                    float angle = (float)(rand() % 100) / 100 + 0.3f;
+                    if (rand() % 2)
+                    {
+                        angle = 3.14 - angle;
+                    }
+                    Ball ball(r_x + r_w / 2, r_y + r_h / 2, ball_radius, ball_axis_speed * std::cos(angle),
+                              ball_axis_speed * std::sin(angle), balls_count + j);
+                    balls.push_back(ball);
+                }
+            }
+            else if (bonuses[i].bonus_type == DoublePlatform)
+            {
+                r_x -= r_w / 2;
+                r_w *= 2;
+            }
+            else if (bonuses[i].bonus_type == BallCapture)
+            {
+                if (captured_ball_index == -1)
+                {
+                    capturing_ball = true;
+                }
+            }
+            else if (bonuses[i].bonus_type == ClearPenalties)
+            {
+                if (r_w < 100){
+                    r_w = 100;
+                }
+                inverted_controls = false;
+            }
+            else if (bonuses[i].bonus_type == ClearAll)
+            {
+                r_w = 100;
+                inverted_controls = false;
+                if (captured_ball_index != -1)
+                {
+                    capturing_ball = false;
+                    float angle = (float)(rand() % 100) / 100 + 0.3f;
+                    if (rand() % 2)
+                    {
+                        angle = 3.14 - angle;
+                    }
+                    balls[captured_ball_index].dx = ball_axis_speed * std::cos(angle);
+                    balls[captured_ball_index].dy = ball_axis_speed * std::sin(angle);
+                    captured_ball_index = -1;
+                }
+            }
+            else if (bonuses[i].bonus_type == HalfPlatform)
+            {
+                r_x += r_w / 4;
+                r_w /= 2;
+            }
+            else if (bonuses[i].bonus_type == InvertedControls)
+            {
+                inverted_controls = true;
+            }
+            bonuses.erase(bonuses.begin() + i);
+        }
+    }
+}
+void draw_platform()
+{
+    graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
+}
 void Draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    // std::cout << "1 " << state << std::endl;
-    if (game_state == Game){
-        if (!inverted_controls && keys['D'] || keys['A'] && inverted_controls)
-        {
-            if (r_x + r_w < screenWidth)
-            {
-                r_x += DELTA_X;
-            }
-            else
-            {
-                r_x = 800 - r_w;
-            }
-        }
-        else if (!inverted_controls && keys['A'] || keys['D'] && inverted_controls)
-        {
-            if (r_x - DELTA_X > 0)
-            {
-                r_x = r_x - DELTA_X;
-            }
-            else
-            {
-                r_x = 0;
-            }
-        }
-        else if (keys[' '])
-        {
-            if (captured_ball_index != -1)
-            {
-                float angle = (float)(rand() % 100) / 100 + 0.3f;
-                if (rand() % 2)
-                {
-                    angle = 3.14 - angle;
-                }
-                balls[captured_ball_index].dx = 5.0f * std::cos(angle);
-                balls[captured_ball_index].dy = 5.0f * std::sin(angle);
-                captured_ball_index = -1;
-            }
-        }
-        for (int i = 0; i < rectangles.size(); i++)
-        {
-            if (rectangles[i].durability)
-            {
-                graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
-            }
-        }
-        bool at_least_one_ball_is_alive = false;
-        for (int i = 0; i < balls.size(); i++)
-        {
-            if (i == captured_ball_index)
-            {
-                balls[i].x = r_x + r_w / 2;
-            }
-            else
-            {
-                balls[i].move(rectangles);
-                if (balls[i].y + balls[i].r < 0)
-                {
-                    balls.erase(balls.begin() + i);
-                    i--;
-                    continue;
-                }
-            }
-            at_least_one_ball_is_alive = true;
-            balls[i].draw(graphics);
-        }
-        if (!at_least_one_ball_is_alive){
-            game_state = Lose;
-        }
-        for (int i = 0; i < bonuses.size(); i++)
-        {
-            bonuses[i].y -= BONUS_FALL_SPEED;
-            Color color = {1.0f, 1.0f, 1.0f, 1.0f};
-            if (bonuses[i].bonus_type >= HalfPlatform)
-            {
-                color = {1.0f, 0.0f, 0.0f, 1.0f};
-            }
-            graphics.drawRectangleWithTexture({bonuses[i].x - 20, bonuses[i].y - 10, bonuses[i].x + 20, bonuses[i].y + 10}, bonusTextures[bonuses[i].bonus_type]);
-            if (bonuses[i].x - 20 <= r_x + r_w && bonuses[i].y - 10 <= r_y + r_h && bonuses[i].x + 20 >= r_x && bonuses[i].y + 10 >= r_y)
-            {
-                if (bonuses[i].bonus_type == DoubleBalls)
-                {
-                    int balls_count = balls.size();
-                    for (int j = 0; j < balls_count; j++)
-                    {
-                        float angle = (float)(rand() % 100) / 100 + 0.3f;
-                        if (rand() % 2)
-                        {
-                            angle = 3.14 - angle;
-                        }
-                        Ball ball(r_x + r_w / 2, r_y + r_h / 2, ball_radius, 4.0f * std::cos(angle), 4.0f * std::sin(angle), balls_count + j);
-                        balls.push_back(ball);
-                    }
-                }
-                else if (bonuses[i].bonus_type == DoublePlatform)
-                {
-                    r_x -= r_w / 2;
-                    r_w *= 2;
-                }
-                else if (bonuses[i].bonus_type == BallCapture)
-                {
-                    if (captured_ball_index == -1)
-                    {
-                        capturing_ball = true;
-                    }
-                }
-                else if (bonuses[i].bonus_type == ClearPenalties)
-                {
-                    r_w = 100;
-                    inverted_controls = false;
-
-                }
-                else if (bonuses[i].bonus_type == ClearAll)
-                {
-                    capturing_ball = false;
-                    r_w = 100;
-                    inverted_controls = false;
-
-                }
-                else if (bonuses[i].bonus_type == HalfPlatform)
-                {
-                    r_x += r_w / 4;
-                    r_w /= 2;
-                }
-                else if (bonuses[i].bonus_type == InvertedControls)
-                {
-                    inverted_controls = true;
-                }
-                bonuses.erase(bonuses.begin() + i);
-            }
-        }
-        graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
+    if (game_state == Game)
+    {
+        handle_game_keyboard();
+        draw_map();
+        draw_balls();
+        draw_bonus();
+        draw_platform();
     }
-    else if (game_state == Menu){
+    else if (game_state == Menu)
+    {
         game_gui.drawMenu(graphics);
     }
-    else if (game_state == Lose){
-        for (int i = 0; i < rectangles.size(); i++)
-        {
-            if (rectangles[i].durability)
-            {
-                graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
-            }
-        }
-        for (int i = 0; i < bonuses.size(); i++)
-        {
-            bonuses[i].y -= BONUS_FALL_SPEED;
-            Color color = {1.0f, 1.0f, 1.0f, 1.0f};
-            if (bonuses[i].bonus_type >= HalfPlatform)
-            {
-                color = {1.0f, 0.0f, 0.0f, 1.0f};
-            }
-            graphics.drawRectangleWithTexture({bonuses[i].x - 20, bonuses[i].y - 10, bonuses[i].x + 20, bonuses[i].y + 10}, bonusTextures[bonuses[i].bonus_type]);
-            if (bonuses[i].x - 20 <= r_x + r_w && bonuses[i].y - 10 <= r_y + r_h && bonuses[i].x + 20 >= r_x && bonuses[i].y + 10 >= r_y)
-            {
-                if (bonuses[i].bonus_type == DoubleBalls)
-                {
-                    int balls_count = balls.size();
-                    for (int j = 0; j < balls_count; j++)
-                    {
-                        float angle = (float)(rand() % 100) / 100 + 0.3f;
-                        if (rand() % 2)
-                        {
-                            angle = 3.14 - angle;
-                        }
-                        Ball ball(r_x + r_w / 2, r_y + r_h + ball_radius, ball_radius, 4.0f * std::cos(angle), 4.0f * std::sin(angle), balls_count + j);
-                        balls.push_back(ball);
-                    }
-                }
-                else if (bonuses[i].bonus_type == DoublePlatform)
-                {
-                    r_x -= r_w / 2;
-                    r_w *= 2;
-                }
-                else if (bonuses[i].bonus_type == BallCapture)
-                {
-                    if (captured_ball_index == -1)
-                    {
-                        capturing_ball = true;
-                    }
-                }
-                else if (bonuses[i].bonus_type == ClearPenalties)
-                {
-                    r_w = 100;
-                    inverted_controls = false;
-                }
-                else if (bonuses[i].bonus_type == ClearAll)
-                {
-                    capturing_ball = false;
-                    r_w = 100;
-                    inverted_controls = false;
-                }
-                else if (bonuses[i].bonus_type == HalfPlatform)
-                {
-                    r_x += r_w / 4;
-                    r_w /= 2;
-                }
-                else if (bonuses[i].bonus_type == InvertedControls)
-                {
-                    inverted_controls = true;
-                }
-                bonuses.erase(bonuses.begin() + i);
-            }
-        }
-        graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
+    else if (game_state == Lose)
+    {
+        draw_map();
+        draw_bonus();
+        draw_platform();
         game_gui.drawLose(graphics);
     }
-
+    else if (game_state == Win)
+    {
+        handle_game_keyboard();
+        draw_map();
+        draw_balls();
+        draw_bonus();
+        draw_platform();
+        game_gui.drawWin(graphics);
+    }
     GLenum errors = glGetError();
     if (errors)
         std::cout << "Ошибки OpenGL: " << errors << std::endl;
@@ -338,27 +324,32 @@ void reshapeCallback(int w, int h)
     graphics.screenHeight = h;
 }
 
-void GUI::startGameCallback(int button, int state, int x, int y){
-    // std::cout << button << " " << state << " " << x << " " << y << std::endl;
-    if (button == 0 && state == 1){
-        if (x >= 250 && x <= 550 && y >= 260 && y <= 340){
-            if (game_state == Menu || game_state == Lose){
-                Ball ball(r_x + r_w / 2, r_y + r_h + 10, ball_radius, 3, 4, 0);
+void GUI::startGameCallback(int button, int state, int x, int y)
+{
+    if (button == 0 && state == 1)
+    {
+        if (x >= 250 && x <= 550 && y >= 260 && y <= 340)
+        {
+            if (game_state == Menu || game_state == Lose || game_state == Win)
+            {
+                Ball ball(r_x + r_w / 2, r_y + r_h + ball_radius, ball_radius, 3, 4, 0);
                 float angle = (float)(rand() % 100) / 100 + 0.3f;
                 if (rand() % 2)
                 {
                     angle = 3.14 - angle;
                 }
-                ball.dx = 5.0f * std::cos(angle);
-                ball.dy = 5.0f * std::sin(angle);
+                ball.dx = ball_axis_speed * std::cos(angle);
+                ball.dy = ball_axis_speed * std::sin(angle);
                 balls.push_back(ball);
+                rectangles.clear();
                 generateMap();
                 capturing_ball = false;
-                captured_ball_index = 0;
+                captured_ball_index = -1;
                 inverted_controls = false;
                 game_state = Game;
                 r_w = 100;
                 r_x = 350;
+                bonuses.clear();
             }
         }
     }
@@ -389,7 +380,8 @@ int main(int argc, char **argv)
     srand(time(NULL)); // инициализация генератора случайных чисел
 
     FT_Error error = FT_Init_FreeType(&library);
-    if (error){
+    if (error)
+    {
         std::cout << "Ошибка загрузки FreeType: " << error << std::endl;
     }
 
@@ -398,11 +390,15 @@ int main(int argc, char **argv)
 
     stbi_set_flip_vertically_on_load(true);
     glGenTextures(7, bonusTextures);
-    std::vector<std::string> bonusTexturesFilenames{"double_balls.bmp", "double_platform.bmp", "ball_capture.bmp", "clear_penalties.bmp", "clear_all.bmp", "half_platform.bmp", "invert_controls.bmp"};
+    std::vector<std::string> bonusTexturesFilenames{"double_balls.bmp",    "double_platform.bmp", "ball_capture.bmp",
+                                                    "clear_penalties.bmp", "clear_all.bmp",       "half_platform.bmp",
+                                                    "invert_controls.bmp"};
     int i = 0;
-    for (std::string filename: bonusTexturesFilenames){
+    for (std::string filename : bonusTexturesFilenames)
+    {
         std::string path = std::string("resources/") + filename;
-        int width, height, channels;;
+        int width, height, channels;
+        ;
         unsigned char *image = stbi_load(path.c_str(), &width, &height, &channels, 0);
         if (image == nullptr)
         {
@@ -424,7 +420,7 @@ int main(int argc, char **argv)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
         glBindTexture(GL_TEXTURE_2D, 0);
-        i++;       
+        i++;
     }
 
     glutMainLoop();
