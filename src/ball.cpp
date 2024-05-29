@@ -8,6 +8,7 @@
 #include <stb_image.h>
 
 #include "vars.hpp"
+#include "map.hpp"
 
 std::vector<Bonus> bonuses;
 
@@ -21,13 +22,13 @@ void Ball::initializeTexture()
     unsigned char *image = stbi_load("./resources/svaston2.png", &width, &height, &channels, 0);
     if (image == nullptr)
     {
-        // std::cout << "Не удалось загрузить текстуру с диска" << std::endl;
+        std::cout << "Не удалось загрузить текстуру с диска" << std::endl;
     }
 
     glGenTextures(1, &textureID);
     if (textureID == 0)
     {
-        // std::cout << "Не удалось создать текстуру" << std::endl;
+        std::cout << "Не удалось создать текстуру" << std::endl;
     }
 
     // std::cout << width << " " << height << " " << channels << std::endl;
@@ -122,7 +123,11 @@ void Ball::move(std::vector<BreakableRectangle> &rectangles)
             if (rectangles[i].durability > 0)
             {
                 rectangles[i].durability -= 1;
-                if (rectangles[i].durability == 0)
+                if (rectangles[i].durability > 0){
+                    rectangles[i].color = baseColors[rectangles[i].durability - 1];
+                }
+                // если сломали ящик и в нем есть бонус
+                if (rectangles[i].durability == 0 && rectangles[i].bonus_type != NoBonus)
                 {
                     bonuses.push_back(Bonus{(rectangles[i].rect.top_right.x + rectangles[i].rect.bottom_left.x) / 2.0f, (rectangles[i].rect.top_right.y + rectangles[i].rect.bottom_left.y) / 2.0f,
                                             rectangles[i].bonus_type});

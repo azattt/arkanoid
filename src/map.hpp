@@ -12,7 +12,9 @@ enum BonusType
     ClearAll,
 
     HalfPlatform,
-    InvertedControls
+    InvertedControls,
+    
+    NoBonus
 };
 
 struct Bonus
