@@ -15,6 +15,6 @@ public:
 
     void initializeTexture();
 
-    void move(std::vector<BreakableRectangle> &rectangles);
+    void move(std::vector<BreakableRectangle> &rectangles, int dt);
     void draw(Graphics &graphics);
 };

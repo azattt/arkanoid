@@ -42,10 +42,10 @@ void Ball::initializeTexture()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Ball::move(std::vector<BreakableRectangle> &rectangles)
+void Ball::move(std::vector<BreakableRectangle> &rectangles, int dt)
 {
-    x += dx;
-    y += dy;
+    x += dx * dt;
+    y += dy * dt;
     if (x - r < 0)
     {
         x = r;

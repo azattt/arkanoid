@@ -30,17 +30,17 @@ bool inverted_controls = false;
 
 bool keys[256];
 
-const int TIME_DELTA = 10;
+int TIME_DELTA = 10;
 
 float r_x = 350, r_y = 100, r_w = 100, r_h = 20;
 float bonus_width = 40;
 float bonus_height = 20;
 
 float ball_radius = 8.0f;
-float ball_axis_speed = 7.0f;
-const int DELTA_X = 20;
+float ball_axis_speed = 0.7f;
+float DELTA_X = 2.0f;
 
-float BONUS_FALL_SPEED = 2.0f;
+float BONUS_FALL_SPEED = 0.2f;
 
 int screenWidth = 800, screenHeight = 600;
 const char windowTitle[] = "Arkanoid";
@@ -86,13 +86,13 @@ void generateMap()
     }
 }
 
-void handle_game_keyboard()
+void handle_game_keyboard(int dt)
 {
     if (!inverted_controls && keys['D'] || keys['A'] && inverted_controls)
     {
         if (r_x + r_w < screenWidth)
         {
-            r_x += DELTA_X;
+            r_x += DELTA_X * dt;
         }
         else
         {
@@ -103,7 +103,7 @@ void handle_game_keyboard()
     {
         if (r_x - DELTA_X > 0)
         {
-            r_x = r_x - DELTA_X;
+            r_x -= DELTA_X * dt;
         }
         else
         {
@@ -125,7 +125,7 @@ void handle_game_keyboard()
         }
     }
 }
-void draw_map()
+void handle_map()
 {
     bool at_least_one_rectangle_alive = false;
     for (int i = 0; i < rectangles.size(); i++)
@@ -140,7 +140,7 @@ void draw_map()
         game_state = Win;
     }
 }
-void draw_balls()
+void handle_balls(int dt)
 {
     bool at_least_one_ball_is_alive = false;
     for (int i = 0; i < balls.size(); i++)
@@ -151,7 +151,7 @@ void draw_balls()
         }
         else
         {
-            balls[i].move(rectangles);
+            balls[i].move(rectangles, dt);
             if (balls[i].y + balls[i].r < 0)
             {
                 balls.erase(balls.begin() + i);
@@ -162,16 +162,16 @@ void draw_balls()
         at_least_one_ball_is_alive = true;
         balls[i].draw(graphics);
     }
-    if (!at_least_one_ball_is_alive)
+    if (!at_least_one_ball_is_alive && game_state != Win)
     {
         game_state = Lose;
     }
 }
-void draw_bonus()
+void handle_bonuses(int dt)
 {
     for (int i = 0; i < bonuses.size(); i++)
     {
-        bonuses[i].y -= BONUS_FALL_SPEED;
+        bonuses[i].y -= BONUS_FALL_SPEED * dt;
         graphics.drawRectangleWithTexture({bonuses[i].x - bonus_width / 2, bonuses[i].y - bonus_height / 2,
                                            bonuses[i].x + bonus_width / 2, bonuses[i].y + bonus_height / 2},
                                           bonusTextures[bonuses[i].bonus_type]);
@@ -242,20 +242,32 @@ void draw_bonus()
         }
     }
 }
-void draw_platform()
+void handle_platform()
 {
     graphics.drawRectangle({r_x, r_y, r_x + r_w, r_y + r_h}, {0.0f, 1.0f, 1.0f, 1.0f});
 }
+
+int time_elapsed = 0;
 void Draw()
 {
+    if (time_elapsed == 0){
+        time_elapsed = glutGet(GLUT_ELAPSED_TIME);
+    }
+    int current_time = glutGet(GLUT_ELAPSED_TIME);
+    int dt = current_time - time_elapsed;
+    if (dt < 0){
+        std::cout << "dt < 0" << std::endl;
+    }
+    time_elapsed = current_time;
+
     glClear(GL_COLOR_BUFFER_BIT);
     if (game_state == Game)
     {
-        handle_game_keyboard();
-        draw_map();
-        draw_balls();
-        draw_bonus();
-        draw_platform();
+        handle_game_keyboard(dt);
+        handle_map();
+        handle_balls(dt);
+        handle_bonuses(dt);
+        handle_platform();
     }
     else if (game_state == Menu)
     {
@@ -263,18 +275,18 @@ void Draw()
     }
     else if (game_state == Lose)
     {
-        draw_map();
-        draw_bonus();
-        draw_platform();
+        handle_map();
+        handle_bonuses(dt);
+        handle_platform();
         game_gui.drawLose(graphics);
     }
     else if (game_state == Win)
     {
-        handle_game_keyboard();
-        draw_map();
-        draw_balls();
-        draw_bonus();
-        draw_platform();
+        handle_game_keyboard(dt);
+        handle_map();
+        handle_balls(dt);
+        handle_bonuses(dt);
+        handle_platform();
         game_gui.drawWin(graphics);
     }
     GLenum errors = glGetError();
