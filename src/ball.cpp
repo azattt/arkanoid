@@ -44,8 +44,10 @@ void Ball::initializeTexture()
 
 void Ball::move(std::vector<BreakableRectangle> &rectangles, int dt)
 {
-    x += dx * dt;
-    y += dy * dt;
+    float dx_mul_dt = dx * dt,
+          dy_mul_dt = dy * dt;
+    x += dx_mul_dt;
+    y += dy_mul_dt;
     if (x - r < 0)
     {
         x = r;
@@ -93,31 +95,31 @@ void Ball::move(std::vector<BreakableRectangle> &rectangles, int dt)
             // лево
             // https://stackoverflow.com/questions/69997547/intersections-of-intervals
             // низ
-            float future_x_left = (x - r) + (dx / dy) * (rectangles[i].rect.bottom_left.y - y - r);
-            if (y + r - dy <= rectangles[i].rect.bottom_left.y && std::max(future_x_left, (float)rectangles[i].rect.bottom_left.x) <= std::min(future_x_left + 2 * r, (float)rectangles[i].rect.top_right.x))
+            float future_x_left = (x - r) + (dx_mul_dt / dy_mul_dt) * (rectangles[i].rect.bottom_left.y - y - r);
+            if (y + r - dy_mul_dt <= rectangles[i].rect.bottom_left.y && std::max(future_x_left, (float)rectangles[i].rect.bottom_left.x) <= std::min(future_x_left + 2 * r, (float)rectangles[i].rect.top_right.x))
             {
                 dy *= -1.0;
                 y = rectangles[i].rect.bottom_left.y - r;
                 // std::cout << y << " низ\n";
             }
-            else if (x - r - dx <= rectangles[i].rect.bottom_left.x)
+            else if (x - r - dx_mul_dt <= rectangles[i].rect.bottom_left.x)
             {
-                x = rectangles[i].rect.bottom_left.x - r;
                 dx *= -1.0;
+                x = rectangles[i].rect.bottom_left.x - r;
                 // std::cout << x << " лево\n";
             }
             // верх
-            else if (x - dx >= rectangles[i].rect.bottom_left.x && x - dx <= rectangles[i].rect.top_right.x && y + r - dy >= rectangles[i].rect.top_right.y)
+            else if (x - dx_mul_dt >= rectangles[i].rect.bottom_left.x && x - dx_mul_dt <= rectangles[i].rect.top_right.x && y + r - dy_mul_dt >= rectangles[i].rect.top_right.y)
             {
-                y = rectangles[i].rect.top_right.y + r;
                 dy *= -1.0;
+                y = rectangles[i].rect.top_right.y + r;
                 // std::cout << i << " верх\n";
             }
             // право
-            else if (x + r - dx >= rectangles[i].rect.top_right.x)
+            else if (x + r - dx_mul_dt >= rectangles[i].rect.top_right.x)
             {
-                x = rectangles[i].rect.top_right.x + r;
                 dx *= -1.0;
+                x = rectangles[i].rect.top_right.x + r;
                 // std::cout << y << " право\n";
             }
             if (rectangles[i].durability > 0)

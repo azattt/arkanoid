@@ -30,13 +30,13 @@ bool inverted_controls = false;
 
 bool keys[256];
 
-int TIME_DELTA = 10;
+int TIME_DELTA = 1;
 
 float r_x = 350, r_y = 100, r_w = 100, r_h = 20;
 float bonus_width = 40;
 float bonus_height = 20;
 
-float ball_radius = 8.0f;
+float ball_radius = 28.0f;
 float ball_axis_speed = 0.7f;
 float DELTA_X = 2.0f;
 
@@ -84,6 +84,7 @@ void generateMap()
                 durability, baseColors[durability - 1], bonus_type});
         }
     }
+    // rectangles.push_back(BreakableRectangle{WindowCoordsRectangle{0, 0, 800, 100}, -1, {0.0f, 1.0f, 0.0f, 1.0f}, NoBonus});
 }
 
 void handle_game_keyboard(int dt)
@@ -130,10 +131,10 @@ void handle_map()
     bool at_least_one_rectangle_alive = false;
     for (int i = 0; i < rectangles.size(); i++)
     {
-        if (rectangles[i].durability > 0)
+        if (rectangles[i].durability)
         {
             graphics.drawRectangle(rectangles[i].rect, rectangles[i].color);
-            at_least_one_rectangle_alive = true;
+            if (rectangles[i].durability > 0) at_least_one_rectangle_alive = true;
         }
     }
     if (!at_least_one_rectangle_alive){
@@ -148,6 +149,7 @@ void handle_balls(int dt)
         if (i == captured_ball_index)
         {
             balls[i].x = r_x + r_w / 2;
+            balls[i].y = r_y + r_h + balls[i].r;
         }
         else
         {
@@ -261,6 +263,7 @@ void Draw()
     time_elapsed = current_time;
 
     glClear(GL_COLOR_BUFFER_BIT);
+
     if (game_state == Game)
     {
         handle_game_keyboard(dt);
@@ -344,19 +347,18 @@ void GUI::startGameCallback(int button, int state, int x, int y)
         {
             if (game_state == Menu || game_state == Lose || game_state == Win)
             {
-                Ball ball(r_x + r_w / 2, r_y + r_h + ball_radius, ball_radius, 3, 4, 0);
+                balls.clear();
+                Ball ball(r_x + r_w / 2, r_y + r_h + ball_radius, ball_radius, 0, 0, 0);
                 float angle = (float)(rand() % 100) / 100 + 0.3f;
                 if (rand() % 2)
                 {
                     angle = 3.14 - angle;
                 }
-                ball.dx = ball_axis_speed * std::cos(angle);
-                ball.dy = ball_axis_speed * std::sin(angle);
                 balls.push_back(ball);
                 rectangles.clear();
                 generateMap();
                 capturing_ball = false;
-                captured_ball_index = -1;
+                captured_ball_index = 0;
                 inverted_controls = false;
                 game_state = Game;
                 r_w = 100;
